@@ -6,7 +6,7 @@ House Finder is a lightweight, offline-first rental discovery platform designed 
 * fragmented rental information,
 * and non-technical users.
 
-The platform helps tenants quickly discover available rental houses nearby without physically walking around neighborhoods searching for vacancy signs.
+The platform helps tenants quickly discover available rental houses without physically walking through neighborhoods searching for vacancy signs.
 
 Unlike traditional real estate platforms, House Finder focuses on:
 
@@ -17,9 +17,9 @@ Unlike traditional real estate platforms, House Finder focuses on:
 
 The application enables:
 
-* tenants to browse rental listings,
+* tenants to browse nearby rental listings,
 * landlords or caretakers to post available houses,
-* and direct communication between both parties through phone calls or WhatsApp.
+* and direct communication between both parties using phone calls or WhatsApp.
 
 ---
 
@@ -28,9 +28,9 @@ The application enables:
 In many cities, especially across Africa, finding rental housing is still a highly manual process:
 
 * tenants walk through neighborhoods searching for “House Available” signs,
-* agents repeat the same information to multiple people,
+* agents repeatedly provide the same information,
 * landlords lack digital visibility,
-* and existing property apps are often too heavy or complicated.
+* and existing rental applications are often too heavy or complicated.
 
 This leads to:
 
@@ -43,61 +43,81 @@ House Finder solves this by providing a lightweight digital rental discovery net
 
 ---
 
-# Goals
+# Vision
 
-The primary goals of the platform are:
+House Finder aims to become the most accessible and lightweight rental discovery platform optimized for emerging markets and low-connectivity environments.
 
-* Fast house discovery
-* Extremely simple user experience
-* Low mobile data consumption
-* Offline-first browsing
-* Reliable performance on weak internet
-* Direct landlord communication
-* Easy listing management
+The mission is to simplify rental discovery while making property visibility accessible to everyone.
+
+---
+
+# Engineering Philosophy
+
+This project prioritizes:
+
+* simplicity,
+* performance,
+* reliability,
+* and low-bandwidth usability.
+
+The architecture intentionally avoids:
+
+* unnecessary microservices,
+* heavy frontend frameworks,
+* and overly complex infrastructure.
+
+The focus is:
+
+* fast APIs,
+* offline-first mobile experiences,
+* low infrastructure cost,
+* and maintainable backend services.
 
 ---
 
 # Core Principles
 
+---
+
 ## 1. Offline-First
 
-The app should remain usable even with unstable internet connections.
+The application should remain usable even with unstable internet connections.
 
 Users must still be able to:
 
 * open the app,
-* view cached listings,
-* browse favorites,
-* and access recent searches offline.
+* browse cached listings,
+* access saved properties,
+* and view recently opened houses offline.
 
 ---
 
 ## 2. Low Data Consumption
 
-The application should minimize:
+The platform minimizes:
 
-* API payload size,
+* API payload sizes,
 * image sizes,
 * unnecessary requests,
-* and background activity.
+* and background network usage.
 
 ---
 
 ## 3. Simplicity
 
-Users should understand the app immediately without onboarding tutorials.
+Users should understand the application immediately without onboarding tutorials.
 
 The interface should:
 
 * avoid clutter,
-* avoid complicated workflows,
-* and minimize user decisions.
+* minimize navigation depth,
+* and reduce user decisions.
 
 ---
 
 ## 4. Reliability
 
-The application must prioritize:
+The platform prioritizes:
 
 * fast loading,
 * stable APIs,
@@ -107,6 +127,8 @@ The application must prioritize:
 ---
 
 # Target Users
+
+---
 
 ## Tenants
 
@@ -132,13 +154,15 @@ Property owners wanting to:
 
 ## Caretakers / Agents
 
-People managing properties on behalf of landlords.
+Individuals managing properties on behalf of landlords.
 
 ---
 
 # MVP Features
 
 # Tenant Features
+
+---
 
 ## Browse Houses
 
@@ -152,12 +176,12 @@ Users can:
 
 ## Search & Filter
 
-Search filters include:
+Filters include:
 
 * location,
 * price range,
-* number of rooms,
-* furnished/unfurnished.
+* room count,
+* furnished/unfurnished status.
 
 ---
 
@@ -168,9 +192,9 @@ Each listing contains:
 * images,
 * rent amount,
 * location,
-* number of rooms,
+* room count,
 * contact information,
-* and basic property description.
+* and property descriptions.
 
 ---
 
@@ -181,7 +205,7 @@ Users can:
 * call landlords directly,
 * or contact them through WhatsApp.
 
-No in-app messaging system is included initially.
+No in-app messaging system is included in the MVP.
 
 ---
 
@@ -193,11 +217,13 @@ Users can save listings locally for offline viewing.
 
 ## Recently Viewed
 
-Recently opened listings remain accessible offline.
+Recently viewed properties remain accessible offline.
 
 ---
 
 # Landlord Features
+
+---
 
 ## Create Listing
 
@@ -220,18 +246,17 @@ Landlords can:
 
 ---
 
-# Non-Goals (Initial Version)
+# Non-Goals (MVP)
 
-The MVP intentionally excludes:
+The initial version intentionally excludes:
 
 * online payments,
 * booking systems,
 * AI recommendations,
-* advanced analytics,
 * video uploads,
 * social networking features,
 * desktop applications,
-* and complex mapping systems.
+* and advanced mapping systems.
 
 These features increase complexity and are not essential for validating the core product.
 
@@ -241,16 +266,19 @@ These features increase complexity and are not essential for validating the core
 
 # Frontend
 
+---
+
 ## Mobile Application
 
 * React Native
 * Expo
+* TypeScript
 
-### Why?
+### Why React Native?
 
 * Single codebase for Android and iOS
-* Fast development cycle
-* Large ecosystem
+* Faster development cycle
+* Excellent ecosystem
 * Good offline support
 
 ---
@@ -264,36 +292,61 @@ These features increase complexity and are not essential for validating the core
 * cached listings,
 * favorites,
 * recent searches,
-* offline browsing.
+* and offline browsing.
 
 ---
 
 # Backend
 
-## API Framework
+---
 
-* FastAPI
+## Backend Framework
 
-### Why?
+* Rust
+* Axum
+* Tokio
 
-* Lightweight
-* High performance
-* Easy API development
-* Async support
-* Excellent developer productivity
+### Why Rust?
+
+Rust provides:
+
+* high performance,
+* low memory usage,
+* strong reliability,
+* and efficient concurrency.
+
+This makes it ideal for:
+
+* low-cost infrastructure,
+* lightweight APIs,
+* and mobile-first applications operating in low-bandwidth environments.
+
+---
+
+### Why Axum?
+
+Axum provides:
+
+* async-first architecture,
+* modular routing,
+* strong type safety,
+* and excellent Tokio ecosystem integration.
 
 ---
 
 ## Database
 
 * PostgreSQL
+* SQLx
 
-### Why?
+### Why SQLx?
 
-* Reliable relational database
-* Good performance
-* Geolocation support
-* Scalability
+SQLx provides:
+
+* async PostgreSQL support,
+* compile-time query validation,
+* lightweight database access,
+* and strong Rust async integration.
 
 ---
 
@@ -305,25 +358,27 @@ These features increase complexity and are not essential for validating the core
 
 * caching popular listings,
 * reducing database load,
-* improving API response times.
+* and improving API response times.
 
 ---
 
 # Media Storage
 
-## Image Storage
+---
 
-* Cloud object storage (S3-compatible)
+## Object Storage
 
-### Strategy
+* S3-compatible object storage
 
-Images are automatically compressed into:
+### Image Strategy
 
-* thumbnail,
-* medium,
-* optimized versions.
+Uploaded images automatically generate:
 
-The mobile app initially loads only low-quality thumbnails to reduce bandwidth usage.
+* thumbnails,
+* optimized medium versions,
+* and compressed originals.
+
+The mobile application initially loads low-quality thumbnails to minimize bandwidth usage.
 
 ---
 
@@ -332,60 +387,34 @@ The mobile app initially loads only low-quality thumbnails to reduce bandwidth u
 ```mermaid
 flowchart TD
 
-    %% =========================
-    %% Components
-    %% =========================
+A[React Native Mobile App] --> B[Axum Rust API]
 
-    A[Mobile App - React Native]
-    B[FastAPI Backend]
-    C[Local SQLite Storage]
-    D[PostgreSQL Database]
-    E[Redis Cache]
-    F[Image Compression Service]
-    G[Cloud Object Storage]
+B --> C[PostgreSQL]
 
-    %% =========================
-    %% Connections
-    %% =========================
+B --> D[Redis Cache]
 
-    A --> B
-    A --> C
-    C --> A
+B --> E[Image Processing Service]
 
-    B --> D
-    B --> E
-    B --> F
+E --> F[S3 Object Storage]
 
-    F --> G
-
-    %% =========================
-    %% Styling
-    %% =========================
-
-    style A fill:#d9ead3,stroke:#6aa84f,stroke-width:2px,color:#000
-    style B fill:#c9daf8,stroke:#3c78d8,stroke-width:2px,color:#000
-    style C fill:#eeeeee,stroke:#666666,stroke-width:2px,color:#000
-
-    style D fill:#d9d2e9,stroke:#8e7cc3,stroke-width:2px,color:#000
-    style E fill:#d9d2e9,stroke:#8e7cc3,stroke-width:2px,color:#000
-    style G fill:#d9d2e9,stroke:#8e7cc3,stroke-width:2px,color:#000
-
-    style F fill:#fce5cd,stroke:#e69138,stroke-width:2px,color:#000
+A --> G[SQLite Offline Cache]
 ```
 
 ---
 
 # Offline-First Architecture
 
-The application follows an offline-first approach.
+The application follows an offline-first design strategy.
+
+---
 
 ## Cached Data
 
 The mobile application stores:
 
 * recent listings,
-* saved listings,
-* recently viewed properties,
+* saved properties,
+* recently viewed listings,
 * and search history locally.
 
 ---
@@ -394,21 +423,94 @@ The mobile application stores:
 
 ### When Online
 
-* app syncs latest listings,
-* updates favorites,
-* refreshes cached data.
+* sync latest listings,
+* refresh cached data,
+* update saved properties.
 
 ### When Offline
 
-* app serves local cached content,
-* queues pending actions,
-* retries synchronization automatically.
+* serve cached content,
+* queue pending actions,
+* retry synchronization automatically.
+
+---
+
+# Backend Architecture
+
+The backend follows a modular architecture to maintain:
+
+* scalability,
+* maintainability,
+* and separation of concerns.
+
+---
+
+## Backend Structure
+
+```plaintext
+backend/
+├── src/
+│   ├── api/
+│   ├── handlers/
+│   ├── services/
+│   ├── repositories/
+│   ├── models/
+│   ├── dto/
+│   ├── middleware/
+│   ├── auth/
+│   ├── cache/
+│   ├── storage/
+│   ├── config/
+│   └── main.rs
+```
+
+---
+
+## Architectural Layers
+
+### Handlers
+
+Responsible for:
+
+* HTTP request handling,
+* response formatting,
+* and route coordination.
+
+---
+
+### Services
+
+Contains:
+
+* business logic,
+* validation,
+* and application workflows.
+
+---
+
+### Repositories
+
+Responsible for:
+
+* database interaction,
+* SQLx queries,
+* and persistence logic.
+
+---
+
+### DTOs
+
+Handles:
+
+* request payloads,
+* response payloads,
+* and serialization structures.
 
 ---
 
 # API Design Principles
 
-The API must:
+The API is designed to:
 
 * remain lightweight,
 * minimize payload size,
@@ -429,13 +531,131 @@ The API must:
 }
 ```
 
-Detailed listing data should only load when a user opens a property.
+Detailed property information loads only when the user opens a listing.
+
+---
+
+# Authentication
+
+The platform uses:
+
+* phone number authentication,
+* OTP verification,
+* JWT access tokens.
+
+### Why?
+
+* easier onboarding,
+* better accessibility,
+* reduced password complexity.
+
+---
+
+# Image Optimization Pipeline
+
+The image processing system:
+
+* compresses uploads,
+* generates thumbnails,
+* and optimizes delivery for low-bandwidth environments.
+
+---
+
+## Optimization Goals
+
+* reduce mobile data usage,
+* improve loading speed,
+* reduce server bandwidth cost.
+
+---
+
+# Backend Performance Optimization
+
+The backend is optimized using Rust async architecture to provide:
+
+* low memory usage,
+* fast API response times,
+* efficient concurrent request handling,
+* and minimal infrastructure costs.
+
+---
+
+## Optimization Strategies
+
+* async request handling using Tokio,
+* lightweight JSON responses,
+* Redis caching,
+* optimized PostgreSQL queries,
+* image compression pipelines,
+* connection pooling.
+
+---
+
+# Security Considerations
+
+The application includes:
+
+* rate limiting,
+* request validation,
+* image upload restrictions,
+* JWT authentication,
+* and API throttling.
+
+---
+
+# Monitoring & Observability
+
+The backend uses structured logging and tracing to improve:
+
+* debugging,
+* performance monitoring,
+* and operational reliability.
+
+---
+
+## Recommended Tools
+
+* tracing
+* tracing-subscriber
+* Sentry
+* Prometheus
+* Grafana
+
+---
+
+# Scalability Strategy
+
+The platform is designed to scale progressively.
+
+---
+
+## Phase 1
+
+Single neighborhood deployment.
+
+---
+
+## Phase 2
+
+Single city deployment.
+
+---
+
+## Phase 3
+
+Multi-city deployment.
+
+---
+
+## Phase 4
+
+National expansion.
 
 ---
 
 # Suggested Folder Structure
 
-# Mobile App
+# Mobile Application
 
 ```plaintext
 mobile-app/
@@ -452,111 +672,144 @@ mobile-app/
 
 ---
 
-# Backend
+# Backend Development Setup
 
-```plaintext
-backend/
-├── app/
-│   ├── api/
-│   ├── models/
-│   ├── services/
-│   ├── repositories/
-│   ├── schemas/
-│   ├── core/
-│   ├── workers/
-│   └── utils/
+## Requirements
+
+* Rust
+* Cargo
+* PostgreSQL
+* Redis
+* Docker (optional)
+
+---
+
+## Install Rust
+
+Visit:
+[Rust Installation Guide](https://www.rust-lang.org/tools/install?utm_source=chatgpt.com)
+
+Or run:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 ---
 
-# Security Considerations
+## Clone Repository
 
-The application should include:
-
-* rate limiting,
-* input validation,
-* image upload restrictions,
-* authentication protection,
-* and API throttling.
+```bash
+git clone <repository-url>
+cd house-finder
+```
 
 ---
 
-# Authentication
+## Configure Environment Variables
 
-Initial authentication options:
+Create a `.env` file:
 
-* phone number login,
-* OTP verification.
-
-Reason:
-
-* easier onboarding,
-* better accessibility,
-* avoids password complexity.
+```env
+DATABASE_URL=postgres://postgres:password@localhost/housefinder
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your-secret-key
+STORAGE_BUCKET=housefinder
+```
 
 ---
 
-# Scalability Strategy
+## Run Database Migrations
 
-The platform should scale progressively:
-
-## Phase 1
-
-Single city deployment.
+```bash
+sqlx migrate run
+```
 
 ---
 
-## Phase 2
+## Run Backend
 
-Multiple neighborhoods.
-
----
-
-## Phase 3
-
-Multiple cities.
+```bash
+cargo run
+```
 
 ---
 
-## Phase 4
+## Run Mobile Application
 
-National expansion.
-
----
-
-# Performance Optimization
-
-## Mobile
-
-* aggressive caching,
-* lazy image loading,
-* pagination,
-* minimal animations.
+```bash
+npm install
+npx expo start
+```
 
 ---
 
-## Backend
+# Docker Setup
 
-* Redis caching,
-* async processing,
-* optimized SQL queries,
-* CDN usage for images.
+## Start Services
+
+```bash
+docker compose up --build
+```
 
 ---
 
-# Monitoring
+## Services Included
 
-Suggested monitoring tools:
+* Rust Backend API
+* PostgreSQL
+* Redis
 
-* Sentry
-* Prometheus
-* Grafana
+---
+
+# CI/CD Pipeline
+
+The CI/CD pipeline includes:
+
+* cargo fmt
+* cargo clippy
+* cargo test
+* Docker image builds
+* automated deployments
+
+---
+
+## Pull Request Requirements
+
+All pull requests must:
+
+* pass formatting checks,
+* pass linting,
+* pass tests,
+* and compile successfully.
+
+---
+
+# Deployment Strategy
+
+## Backend Hosting
+
+The Rust backend is designed for lightweight deployment and can run efficiently on:
+
+* small VPS instances,
+* low-memory cloud servers,
+* or containerized infrastructure.
+
+---
+
+## Deployment Components
+
+* Axum API
+* PostgreSQL
+* Redis
+* NGINX reverse proxy
+* S3-compatible object storage
 
 ---
 
 # Future Features
 
-Potential future enhancements:
+Potential future enhancements include:
 
 * landlord verification,
 * push notifications,
@@ -570,7 +823,7 @@ Potential future enhancements:
 
 # Monetization Strategy
 
-Possible monetization methods:
+Potential monetization methods:
 
 * promoted listings,
 * featured properties,
@@ -578,65 +831,11 @@ Possible monetization methods:
 * agency subscriptions,
 * advertising partnerships.
 
-The MVP should prioritize growth and listing density over immediate monetization.
+The MVP prioritizes:
 
----
-
-# Deployment Strategy
-
-## Backend Hosting
-
-* VPS or cloud instance
-* Dockerized deployment
-
----
-
-## Database Hosting
-
-* Managed PostgreSQL
-
----
-
-## Object Storage
-
-* S3-compatible provider
-
----
-
-## CDN
-
-* image delivery optimization
-
----
-
-# Development Phases
-
-# Phase 1 — MVP
-
-* authentication,
-* property listing,
-* browsing,
-* filtering,
-* favorites,
-* offline cache,
-* direct calls.
-
----
-
-# Phase 2
-
-* notifications,
-* landlord verification,
-* map support,
-* analytics.
-
----
-
-# Phase 3
-
-* monetization,
-* recommendations,
-* scaling infrastructure.
+* user growth,
+* listing density,
+* and usability before monetization.
 
 ---
 
@@ -649,18 +848,35 @@ The platform succeeds if users can:
 * access listings with poor internet,
 * and contact landlords easily.
 
-Key metrics:
+---
+
+## Key Metrics
 
 * daily active users,
 * listing count,
 * successful landlord contacts,
-* user retention,
-* app load speed.
+* app load speed,
+* and user retention.
 
 ---
 
-# Vision
+# Contributing
 
-House Finder aims to become the most accessible and lightweight rental discovery platform optimized for emerging markets and low-connectivity environments.
+Contributors should prioritize:
 
-The mission is to simplify rental discovery while making property visibility accessible to everyone.
+* simplicity,
+* performance,
+* maintainability,
+* and offline-first design principles.
+
+Avoid:
+
+* unnecessary abstractions,
+* premature microservices,
+* and overly complex frontend patterns.
+
+---
+
+# License
+
+This project is licensed under the MIT License.
