@@ -41,4 +41,27 @@ class House {
     this.longitude,
     required this.landlordPhone,
   });
+
+  /// Creates a [House] from a JSON object (snake_case keys as returned by
+  /// the backend API).
+  factory House.fromJson(Map<String, dynamic> json) {
+    return House(
+      id: json['id'] as int,
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      price: (json['price'] as num).toDouble(),
+      bedrooms: json['bedrooms'] as int?,
+      bathrooms: (json['bathrooms'] as num?)?.toDouble(),
+      squareFeet: json['square_feet'] as int?,
+      propertyType: json['property_type'] as String?,
+      address: json['address'] as String,
+      city: json['city'] as String,
+      state: json['state'] as String?,
+      zipCode: json['zip_code'] as String?,
+      country: json['country'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      landlordPhone: json['landlord_phone'] as String,
+    );
+  }
 }
