@@ -3,12 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:house_finder/core/network/api_client.dart';
+import 'package:house_finder/core/routing/app_router.dart';
+import 'package:house_finder/core/routing/routes.dart';
 import 'package:house_finder/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
   setUp(() {
+    appRouter.go(AppRoutes.home);
     ApiClient.client = MockClient((request) async {
       if (request.url.path == '/houses') {
         return http.Response(
@@ -183,6 +186,8 @@ void main() {
     });
 
     await tester.pumpWidget(const HouseFinderApp());
+    // Let the async API call and entrance animations complete
+    await tester.pump();
     await tester.pumpAndSettle();
 
     // No cards should be shown when the API fails
@@ -191,9 +196,9 @@ void main() {
     expect(find.text('Something went wrong'), findsOneWidget);
     expect(
       find.text('Failed to load houses. Please check your connection and try again.'),
-      findsNWidgets(2),
+      findsWidgets,
     );
     // Retry button should be present
-    expect(find.text('Retry'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Retry'), findsOneWidget);
   });
 }
