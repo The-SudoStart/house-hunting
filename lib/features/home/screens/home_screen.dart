@@ -14,6 +14,7 @@ import '../widgets/house_list_item.dart';
 /// * Responsive scrolling list (or grid on wide screens).
 /// * Loading state while data is fetched.
 /// * Empty state when no listings match the query.
+/// * Error handling with SnackBar notification and retry option.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -26,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<House> _allHouses = [];
   List<House> _filteredHouses = [];
   String _searchQuery = '';
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -34,7 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadHouses() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final houses = await HouseService.getHouses();
       setState(() {
@@ -43,11 +48,25 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      final message =
+          'Failed to load houses. Please check your connection and try again.';
       setState(() {
         _isLoading = false;
+        _errorMessage = message;
         _allHouses = [];
         _filteredHouses = [];
       });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _loadHouses,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -190,26 +209,35 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.home_work_outlined,
+              _errorMessage != null ? Icons.error_outline : Icons.home_work_outlined,
               size: 64,
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
-              'No houses found',
+              _errorMessage != null ? 'Something went wrong' : 'No houses found',
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              _searchQuery.isEmpty
-                  ? 'Check back later for new listings'
-                  : 'Try adjusting your search criteria',
+              _errorMessage ??
+                  (_searchQuery.isEmpty
+                      ? 'Check back later for new listings'
+                      : 'Try adjusting your search criteria'),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _loadHouses,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
           ],
         ),
       ),
