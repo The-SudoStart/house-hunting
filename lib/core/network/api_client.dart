@@ -11,11 +11,7 @@ import 'package:http/http.dart' as http;
 ///
 /// The [client] is injectable so tests can provide a [MockClient].
 class ApiClient {
-  static http.Client _client = http.Client();
-
-  static http.Client get client => _client;
-
-  static set client(http.Client value) => _client = value;
+  static http.Client client = http.Client();
 
   static String get baseUrl {
     if (kIsWeb) {
