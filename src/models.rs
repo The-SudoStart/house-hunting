@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// This model supports all information required by the MVP
 /// while remaining flexible for future enhancements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct House {
     pub id: i32,
     pub title: String,
