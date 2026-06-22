@@ -31,7 +31,7 @@ abstract final class AppTheme {
           isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant,
       outline: isDark ? AppColors.darkOutline : AppColors.outline,
       error: AppColors.error,
-      shadow: Colors.black.withOpacity(0.1),
+      shadow: Colors.black.withValues(alpha: 0.1),
     );
 
     final textTheme = TextTheme(
@@ -117,7 +117,7 @@ abstract final class AppTheme {
         ),
       ),
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_cardBorderRadius),
@@ -155,7 +155,7 @@ abstract final class AppTheme {
           color: colorScheme.onSurfaceVariant,
         ),
         hintStyle: AppTypography.bodyMedium.copyWith(
-          color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
         ),
       ),
       // Chip theme
@@ -171,7 +171,7 @@ abstract final class AppTheme {
       ),
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: colorScheme.outline.withOpacity(0.5),
+        color: colorScheme.outline.withValues(alpha: 0.5),
         thickness: 1,
         space: 1,
       ),
@@ -195,13 +195,13 @@ abstract final class AppTheme {
         unselectedLabelStyle: AppTypography.labelMedium,
       ),
       // Tab bar theme
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelStyle: AppTypography.labelLarge,
         unselectedLabelStyle: AppTypography.labelLarge,
         labelColor: colorScheme.primary,
         unselectedLabelColor: colorScheme.onSurfaceVariant,
         indicatorColor: colorScheme.primary,
-        dividerColor: colorScheme.outline.withOpacity(0.5),
+        dividerColor: colorScheme.outline.withValues(alpha: 0.5),
       ),
       // List tile theme
       listTileTheme: ListTileThemeData(
