@@ -70,7 +70,7 @@ Make sure your `APP__DATABASE_URL` matches your local credentials.
 From the project root:
 
 ```bash
-cargo build
+cargo build --bin house-hunting
 ```
 
 This compiles the server and all binaries, including the seed script.
@@ -82,7 +82,7 @@ This compiles the server and all binaries, including the seed script.
 Migrations are embedded in the binary and run automatically when the server starts, but you can also trigger them manually by running the server once:
 
 ```bash
-cargo run
+cargo run --bin house-hunting
 ```
 
 The server will connect to the database, verify the connection, and apply any pending migrations. On success, you will see:
@@ -128,7 +128,7 @@ Each run will clear existing seed data and insert fresh records.
 ## 6. Run the Backend Server
 
 ```bash
-cargo run
+cargo run --bin house-hunting
 ```
 
 The API server starts on `http://127.0.0.1:3000` by default.
