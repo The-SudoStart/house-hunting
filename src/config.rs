@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub server_port: u16,
     #[serde(default = "default_log_level")]
     pub log_level: String,
+    pub database_url: String,
 }
 
 impl AppConfig {
@@ -32,6 +33,7 @@ impl Default for AppConfig {
             server_host: default_server_host(),
             server_port: default_server_port(),
             log_level: default_log_level(),
+            database_url: default_database_url(),
         }
     }
 }
@@ -46,4 +48,8 @@ fn default_server_port() -> u16 {
 
 fn default_log_level() -> String {
     "info".to_string()
+}
+
+fn default_database_url() -> String {
+    "postgres://postgres:postgres@localhost:5432/house_hunting".to_string()
 }

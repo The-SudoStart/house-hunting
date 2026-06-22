@@ -1,11 +1,15 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
+use house_hunting::config::AppConfig;
+use house_hunting::db::create_pool;
 use house_hunting::routes::create_router;
 use tower::ServiceExt;
 
 #[tokio::test]
 async fn health_endpoint_returns_ok() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let app = create_router();
+    let config = AppConfig::from_env().unwrap_or_default();
+    let pool = create_pool(&config.database_url).await?;
+    let app = create_router(pool);
 
     let request = Request::builder().uri("/health").body(Body::empty())?;
 

@@ -1,4 +1,5 @@
 use house_hunting::config::AppConfig;
+use house_hunting::db::{create_pool, run_migrations, verify_connection};
 use house_hunting::routes::create_router;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
@@ -21,7 +22,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     tracing::subscriber::set_global_default(subscriber)?;
 
-    let app = create_router();
+    let db_pool = create_pool(&config.database_url).await?;
+    verify_connection(&db_pool).await?;
+    run_migrations(&db_pool).await?;
+
+    let app = create_router(db_pool);
     let address = config.server_address();
 
     let listener = tokio::net::TcpListener::bind(&address).await?;
