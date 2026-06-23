@@ -23,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final HouseService _houseService = HouseService();
+
   bool _isLoading = true;
   List<House> _allHouses = [];
   List<House> _filteredHouses = [];
@@ -41,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _errorMessage = null;
     });
     try {
-      final houses = await HouseService.getHouses();
+      final houses = await _houseService.getHouses();
       setState(() {
         _allHouses = houses;
         _filteredHouses = houses;
