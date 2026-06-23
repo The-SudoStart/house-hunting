@@ -1,31 +1,24 @@
-import 'dart:convert';
-import 'dart:developer';
-
-import '../core/network/api_client.dart';
-import '../models/house.dart';
+import '../../models/house.dart';
+import '../data/repositories/house_repository.dart';
 
 /// Provides house listing data for the application.
 ///
-/// Fetches listings from the backend API via [ApiClient]. Errors are
-/// propagated to the caller so the UI can handle them gracefully.
+/// Acts as a thin abstraction layer above [HouseRepository] so the UI
+/// remains independent of networking implementation details. In the
+/// future this class can also cache results, apply local filtering, or
+/// orchestrate multiple repositories without changing the interface
+/// consumed by the UI.
 class HouseService {
-  /// Fetch all house listings from the backend API.
-  static Future<List<House>> getHouses() async {
-    final response = await ApiClient.client
-        .get(Uri.parse('${ApiClient.baseUrl}/houses'))
-        .timeout(const Duration(seconds: 10));
+  final HouseRepository _repository;
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = (body['data'] as List<dynamic>?) ?? [];
-      return data
-          .map((e) => House.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } else {
-      log('API error: ${response.statusCode} ${response.body}');
-      throw Exception(
-        'Failed to load houses (status ${response.statusCode})',
-      );
-    }
+  HouseService({HouseRepository? repository})
+      : _repository = repository ?? HouseRepository();
+
+  /// Fetch all house listings.
+  ///
+  /// Delegates to [HouseRepository.getAllHouses]. Errors are propagated
+  /// to the caller so the UI can handle them gracefully.
+  Future<List<House>> getHouses() async {
+    return _repository.getAllHouses();
   }
 }
