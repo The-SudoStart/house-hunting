@@ -3,25 +3,70 @@ import 'package:flutter/foundation.dart';
 /// Represents a rental property listing in the application.
 ///
 /// This model mirrors the backend [HouseResponse] while remaining
-/// independent of the serialization layer.
+/// independent of the serialization layer. It supports full JSON
+/// serialization and deserialization, as well as value-based equality
+/// and cloning via [copyWith].
+///
+/// Example usage:
+/// ```dart
+/// final house = House.fromJson(jsonResponse);
+/// final json = house.toJson();
+/// ```
 @immutable
 class House {
+  /// Unique identifier for the house listing.
   final int id;
+
+  /// Short, descriptive title of the rental property.
   final String title;
+
+  /// Detailed description of the property and its amenities.
   final String? description;
+
+  /// Monthly rental price in the local currency (FCFA).
   final double price;
+
+  /// Number of bedrooms, if specified.
   final int? bedrooms;
+
+  /// Number of bathrooms, if specified. May be fractional (e.g. 2.5).
   final double? bathrooms;
+
+  /// Interior area in square metres, if specified.
   final int? squareFeet;
+
+  /// Type of property (e.g. 'apartment', 'house', 'studio', 'hostel').
   final String? propertyType;
+
+  /// Street address of the property.
   final String address;
+
+  /// City where the property is located.
   final String city;
+
+  /// State or region where the property is located, if applicable.
   final String? state;
+
+  /// Postal or ZIP code, if applicable.
   final String? zipCode;
+
+  /// Country where the property is located.
   final String? country;
+
+  /// Geographic latitude, if available.
   final double? latitude;
+
+  /// Geographic longitude, if available.
   final double? longitude;
+
+  /// Phone number of the landlord or property manager.
   final String landlordPhone;
+
+  /// UTC timestamp when the listing was created.
+  final DateTime? createdAt;
+
+  /// UTC timestamp when the listing was last updated.
+  final DateTime? updatedAt;
 
   const House({
     required this.id,
@@ -40,10 +85,15 @@ class House {
     this.latitude,
     this.longitude,
     required this.landlordPhone,
+    this.createdAt,
+    this.updatedAt,
   });
 
-  /// Creates a [House] from a JSON object (snake_case keys as returned by
-  /// the backend API).
+  /// Creates a [House] instance from a JSON map (typically an API response).
+  ///
+  /// The JSON keys are expected to match the snake_case field names used
+  /// by the backend (`square_feet`, `property_type`, `zip_code`,
+  /// `landlord_phone`, `created_at`, `updated_at`).
   factory House.fromJson(Map<String, dynamic> json) {
     return House(
       id: json['id'] as int,
@@ -51,7 +101,9 @@ class House {
       description: json['description'] as String?,
       price: (json['price'] as num).toDouble(),
       bedrooms: json['bedrooms'] as int?,
-      bathrooms: (json['bathrooms'] as num?)?.toDouble(),
+      bathrooms: json['bathrooms'] != null
+          ? (json['bathrooms'] as num).toDouble()
+          : null,
       squareFeet: json['square_feet'] as int?,
       propertyType: json['property_type'] as String?,
       address: json['address'] as String,
@@ -59,9 +111,140 @@ class House {
       state: json['state'] as String?,
       zipCode: json['zip_code'] as String?,
       country: json['country'] as String?,
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      latitude: json['latitude'] != null
+          ? (json['latitude'] as num).toDouble()
+          : null,
+      longitude: json['longitude'] != null
+          ? (json['longitude'] as num).toDouble()
+          : null,
       landlordPhone: json['landlord_phone'] as String,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
     );
+  }
+
+  /// Converts this [House] instance into a JSON map.
+  ///
+  /// The produced map uses snake_case keys to match the backend contract.
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'title': title,
+      'description': description,
+      'price': price,
+      'bedrooms': bedrooms,
+      'bathrooms': bathrooms,
+      'square_feet': squareFeet,
+      'property_type': propertyType,
+      'address': address,
+      'city': city,
+      'state': state,
+      'zip_code': zipCode,
+      'country': country,
+      'latitude': latitude,
+      'longitude': longitude,
+      'landlord_phone': landlordPhone,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+
+  /// Creates a copy of this [House] with the given fields replaced by new
+  /// values.
+  House copyWith({
+    int? id,
+    String? title,
+    String? description,
+    double? price,
+    int? bedrooms,
+    double? bathrooms,
+    int? squareFeet,
+    String? propertyType,
+    String? address,
+    String? city,
+    String? state,
+    String? zipCode,
+    String? country,
+    double? latitude,
+    double? longitude,
+    String? landlordPhone,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return House(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      bedrooms: bedrooms ?? this.bedrooms,
+      bathrooms: bathrooms ?? this.bathrooms,
+      squareFeet: squareFeet ?? this.squareFeet,
+      propertyType: propertyType ?? this.propertyType,
+      address: address ?? this.address,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      zipCode: zipCode ?? this.zipCode,
+      country: country ?? this.country,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      landlordPhone: landlordPhone ?? this.landlordPhone,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is House &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          description == other.description &&
+          price == other.price &&
+          bedrooms == other.bedrooms &&
+          bathrooms == other.bathrooms &&
+          squareFeet == other.squareFeet &&
+          propertyType == other.propertyType &&
+          address == other.address &&
+          city == other.city &&
+          state == other.state &&
+          zipCode == other.zipCode &&
+          country == other.country &&
+          latitude == other.latitude &&
+          longitude == other.longitude &&
+          landlordPhone == other.landlordPhone &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt;
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        title,
+        description,
+        price,
+        bedrooms,
+        bathrooms,
+        squareFeet,
+        propertyType,
+        address,
+        city,
+        state,
+        zipCode,
+        country,
+        latitude,
+        longitude,
+        landlordPhone,
+        createdAt,
+        updatedAt,
+      );
+
+  @override
+  String toString() {
+    return 'House(id: $id, title: $title, city: $city, price: $price)';
   }
 }
