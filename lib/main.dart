@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/providers/home_notifier.dart';
-import 'features/home/repositories/house_repository.dart';
+import 'services/house_service.dart';
 
 void main() {
   runApp(const HouseFinderApp());
@@ -18,7 +18,7 @@ class HouseFinderApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => HomeNotifier(HouseRepositoryImpl()),
+          create: (_) => HomeNotifier(HouseService()),
         ),
       ],
       child: MaterialApp.router(

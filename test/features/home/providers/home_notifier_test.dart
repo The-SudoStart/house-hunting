@@ -2,17 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:house_finder/features/home/providers/home_notifier.dart';
 import 'package:house_finder/features/home/providers/home_state.dart';
+import 'package:house_finder/data/repositories/house_repository.dart';
 import 'package:house_finder/models/house.dart';
-import 'package:house_finder/features/home/repositories/house_repository.dart';
+import 'package:house_finder/services/house_service.dart';
 
-class _FakeHouseRepository implements HouseRepository {
+class _FakeHouseRepository extends HouseRepository {
   final List<House> _houses;
   final bool _shouldFail;
 
   _FakeHouseRepository(this._houses, this._shouldFail);
 
   @override
-  Future<List<House>> getHouses() async {
+  Future<List<House>> getAllHouses() async {
     if (_shouldFail) {
       throw Exception('API error');
     }
@@ -42,14 +43,16 @@ void main() {
 
   group('HomeNotifier', () {
     test('initial state is HomeInitial', () {
-      final notifier = HomeNotifier(_FakeHouseRepository([], false));
+      final notifier = HomeNotifier(
+        HouseService(repository: _FakeHouseRepository([], false)),
+      );
       expect(notifier.state, isA<HomeInitial>());
       expect(notifier.allHouses, isEmpty);
     });
 
     test('loadHouses emits HomeLoading then HomeSuccess', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
 
       final states = <HomeState>[];
@@ -70,7 +73,7 @@ void main() {
 
     test('loadHouses populates allHouses on success', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
 
       await notifier.loadHouses();
@@ -80,7 +83,7 @@ void main() {
 
     test('loadHouses emits HomeLoading then HomeError on failure', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository([], true),
+        HouseService(repository: _FakeHouseRepository([], true)),
       );
 
       final states = <HomeState>[];
@@ -100,7 +103,7 @@ void main() {
 
     test('filteredHouses returns all houses when query is empty', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
       await notifier.loadHouses();
 
@@ -110,7 +113,7 @@ void main() {
 
     test('filteredHouses filters by title', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
       await notifier.loadHouses();
 
@@ -121,7 +124,7 @@ void main() {
 
     test('filteredHouses filters by city', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
       await notifier.loadHouses();
 
@@ -132,7 +135,7 @@ void main() {
 
     test('filteredHouses returns empty list for no match', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
       await notifier.loadHouses();
 
@@ -142,7 +145,7 @@ void main() {
 
     test('retry delegates to loadHouses', () async {
       final notifier = HomeNotifier(
-        _FakeHouseRepository(testHouses, false),
+        HouseService(repository: _FakeHouseRepository(testHouses, false)),
       );
 
       final states = <HomeState>[];

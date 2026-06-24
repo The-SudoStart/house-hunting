@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/house.dart';
-import '../repositories/house_repository.dart';
+import '../../../services/house_service.dart';
 import 'home_state.dart';
 
 class HomeNotifier extends ChangeNotifier {
-  final HouseRepository _repository;
+  final HouseService _houseService;
 
   HomeState _state = const HomeInitial();
   List<House> _allHouses = [];
 
-  HomeNotifier(this._repository);
+  HomeNotifier(this._houseService);
 
   HomeState get state => _state;
 
@@ -31,7 +31,7 @@ class HomeNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final houses = await _repository.getHouses();
+      final houses = await _houseService.getHouses();
       _allHouses = houses;
       _state = HomeSuccess(houses);
       notifyListeners();
