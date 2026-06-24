@@ -32,8 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _navigateToDetails(int id) {
-    context.go(AppRoutes.houseDetailsPath(id.toString()));
+  void _navigateToDetails(House house) {
+    context.go(
+      AppRoutes.houseDetailsPath(house.id.toString()),
+      extra: house,
+    );
   }
 
   @override
@@ -139,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
           delegate: SliverChildBuilderDelegate(
             (context, index) => HouseListItem(
               house: houses[index],
-              onTap: () => _navigateToDetails(houses[index].id),
+              onTap: () => _navigateToDetails(houses[index]),
             ),
             childCount: houses.length,
           ),
@@ -155,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: HouseListItem(
               house: houses[index],
-              onTap: () => _navigateToDetails(houses[index].id),
+              onTap: () => _navigateToDetails(houses[index]),
             ),
           ),
           childCount: houses.length,
