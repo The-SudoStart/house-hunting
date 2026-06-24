@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../models/house.dart';
 
-/// A card widget that displays a summary of a house listing.
-///
-/// Tapping the card invokes the optional [onTap] callback, which is
-/// typically used to navigate to the house details screen.
 class HouseListItem extends StatelessWidget {
   final House house;
   final VoidCallback? onTap;
@@ -28,17 +24,7 @@ class HouseListItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image placeholder
-            Container(
-              height: 180,
-              width: double.infinity,
-              color: colorScheme.surfaceContainerHighest,
-              child: Icon(
-                Icons.home,
-                size: 48,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ),
+            _buildImage(colorScheme),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -96,6 +82,25 @@ class HouseListItem extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (house.propertyType != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _capitalize(house.propertyType!),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
                   if (house.bedrooms != null ||
                       house.bathrooms != null ||
                       house.squareFeet != null) ...[
@@ -165,10 +170,47 @@ class HouseListItem extends StatelessWidget {
     );
   }
 
+  Widget _buildImage(ColorScheme colorScheme) {
+    if (house.imageUrl != null && house.imageUrl!.isNotEmpty) {
+      return Image.network(
+        house.imageUrl!,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildPlaceholder(colorScheme);
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return _buildPlaceholder(colorScheme);
+        },
+      );
+    }
+    return _buildPlaceholder(colorScheme);
+  }
+
+  Widget _buildPlaceholder(ColorScheme colorScheme) {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      color: colorScheme.surfaceContainerHighest,
+      child: Icon(
+        Icons.home,
+        size: 48,
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+      ),
+    );
+  }
+
   String _formatPrice(double price) {
     return price.toStringAsFixed(0).replaceAllMapped(
       RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (match) => ',',
     );
+  }
+
+  String _capitalize(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1);
   }
 }
