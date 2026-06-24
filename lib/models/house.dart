@@ -38,6 +38,9 @@ class House {
   /// Type of property (e.g. 'apartment', 'house', 'studio', 'hostel').
   final String? propertyType;
 
+  /// URL of the primary image for the listing, if available.
+  final String? imageUrl;
+
   /// Street address of the property.
   final String address;
 
@@ -77,6 +80,7 @@ class House {
     this.bathrooms,
     this.squareFeet,
     this.propertyType,
+    this.imageUrl,
     required this.address,
     required this.city,
     this.state,
@@ -106,6 +110,7 @@ class House {
           : null,
       squareFeet: json['square_feet'] as int?,
       propertyType: json['property_type'] as String?,
+      imageUrl: json['image_url'] as String?,
       address: json['address'] as String,
       city: json['city'] as String,
       state: json['state'] as String?,
@@ -140,6 +145,7 @@ class House {
       'bathrooms': bathrooms,
       'square_feet': squareFeet,
       'property_type': propertyType,
+      'image_url': imageUrl,
       'address': address,
       'city': city,
       'state': state,
@@ -164,6 +170,7 @@ class House {
     double? bathrooms,
     int? squareFeet,
     String? propertyType,
+    String? imageUrl,
     String? address,
     String? city,
     String? state,
@@ -184,6 +191,7 @@ class House {
       bathrooms: bathrooms ?? this.bathrooms,
       squareFeet: squareFeet ?? this.squareFeet,
       propertyType: propertyType ?? this.propertyType,
+      imageUrl: imageUrl ?? this.imageUrl,
       address: address ?? this.address,
       city: city ?? this.city,
       state: state ?? this.state,
@@ -210,6 +218,7 @@ class House {
           bathrooms == other.bathrooms &&
           squareFeet == other.squareFeet &&
           propertyType == other.propertyType &&
+          imageUrl == other.imageUrl &&
           address == other.address &&
           city == other.city &&
           state == other.state &&
@@ -231,6 +240,7 @@ class House {
         bathrooms,
         squareFeet,
         propertyType,
+        imageUrl,
         address,
         city,
         state,
