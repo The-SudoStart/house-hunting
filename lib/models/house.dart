@@ -41,6 +41,9 @@ class House {
   /// URL of the primary image for the listing, if available.
   final String? imageUrl;
 
+  /// URLs of every image for the listing, if available.
+  final List<String> imageUrls;
+
   /// Street address of the property.
   final String address;
 
@@ -81,6 +84,7 @@ class House {
     this.squareFeet,
     this.propertyType,
     this.imageUrl,
+    this.imageUrls = const [],
     required this.address,
     required this.city,
     this.state,
@@ -99,6 +103,11 @@ class House {
   /// by the backend (`square_feet`, `property_type`, `zip_code`,
   /// `landlord_phone`, `created_at`, `updated_at`).
   factory House.fromJson(Map<String, dynamic> json) {
+    final imageUrl = json['image_url'] as String?;
+    final hasGalleryImages =
+        json.containsKey('image_urls') || json.containsKey('images');
+    final galleryImages = _parseImageUrls(json);
+
     return House(
       id: json['id'] as int,
       title: json['title'] as String,
@@ -110,7 +119,13 @@ class House {
           : null,
       squareFeet: json['square_feet'] as int?,
       propertyType: json['property_type'] as String?,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: imageUrl,
+      imageUrls: !hasGalleryImages &&
+              galleryImages.isEmpty &&
+              imageUrl != null &&
+              imageUrl.isNotEmpty
+          ? [imageUrl]
+          : galleryImages,
       address: json['address'] as String,
       city: json['city'] as String,
       state: json['state'] as String?,
@@ -146,6 +161,7 @@ class House {
       'square_feet': squareFeet,
       'property_type': propertyType,
       'image_url': imageUrl,
+      'image_urls': imageUrls,
       'address': address,
       'city': city,
       'state': state,
@@ -171,6 +187,7 @@ class House {
     int? squareFeet,
     String? propertyType,
     String? imageUrl,
+    List<String>? imageUrls,
     String? address,
     String? city,
     String? state,
@@ -192,6 +209,7 @@ class House {
       squareFeet: squareFeet ?? this.squareFeet,
       propertyType: propertyType ?? this.propertyType,
       imageUrl: imageUrl ?? this.imageUrl,
+      imageUrls: imageUrls ?? this.imageUrls,
       address: address ?? this.address,
       city: city ?? this.city,
       state: state ?? this.state,
@@ -219,6 +237,7 @@ class House {
           squareFeet == other.squareFeet &&
           propertyType == other.propertyType &&
           imageUrl == other.imageUrl &&
+          listEquals(imageUrls, other.imageUrls) &&
           address == other.address &&
           city == other.city &&
           state == other.state &&
@@ -241,6 +260,7 @@ class House {
         squareFeet,
         propertyType,
         imageUrl,
+        Object.hashAll(imageUrls),
         address,
         city,
         state,
@@ -256,5 +276,17 @@ class House {
   @override
   String toString() {
     return 'House(id: $id, title: $title, city: $city, price: $price)';
+  }
+
+  static List<String> _parseImageUrls(Map<String, dynamic> json) {
+    final rawImages = json['image_urls'] ?? json['images'];
+    if (rawImages is List) {
+      return rawImages
+          .whereType<String>()
+          .where((image) => image.trim().isNotEmpty)
+          .toList(growable: false);
+    }
+
+    return const [];
   }
 }

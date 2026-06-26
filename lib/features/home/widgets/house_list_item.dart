@@ -4,11 +4,13 @@ import '../../../models/house.dart';
 
 class HouseListItem extends StatelessWidget {
   final House house;
+  final double? distanceKm;
   final VoidCallback? onTap;
 
   const HouseListItem({
     super.key,
     required this.house,
+    this.distanceKm,
     this.onTap,
   });
 
@@ -82,6 +84,26 @@ class HouseListItem extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (distanceKm != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.near_me,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDistance(distanceKm!),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (house.propertyType != null) ...[
                     const SizedBox(height: 8),
                     Container(
@@ -212,5 +234,13 @@ class HouseListItem extends StatelessWidget {
   String _capitalize(String value) {
     if (value.isEmpty) return value;
     return value[0].toUpperCase() + value.substring(1);
+  }
+
+  String _formatDistance(double distanceKm) {
+    if (distanceKm < 1) {
+      return '${(distanceKm * 1000).round()} m away';
+    }
+
+    return '${distanceKm.toStringAsFixed(1)} km away';
   }
 }

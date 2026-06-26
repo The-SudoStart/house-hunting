@@ -14,6 +14,10 @@ void main() {
         'square_feet': 140,
         'property_type': 'apartment',
         'image_url': 'https://example.com/house1.jpg',
+        'image_urls': [
+          'https://example.com/house1.jpg',
+          'https://example.com/house1-living-room.jpg',
+        ],
         'address': 'Rue 1.123, Bastos',
         'city': 'Yaoundé',
         'state': 'Centre',
@@ -37,6 +41,10 @@ void main() {
       expect(house.squareFeet, 140);
       expect(house.propertyType, 'apartment');
       expect(house.imageUrl, 'https://example.com/house1.jpg');
+      expect(house.imageUrls, [
+        'https://example.com/house1.jpg',
+        'https://example.com/house1-living-room.jpg',
+      ]);
       expect(house.address, 'Rue 1.123, Bastos');
       expect(house.city, 'Yaoundé');
       expect(house.state, 'Centre');
@@ -70,6 +78,7 @@ void main() {
       expect(house.squareFeet, isNull);
       expect(house.propertyType, isNull);
       expect(house.imageUrl, isNull);
+      expect(house.imageUrls, isEmpty);
       expect(house.state, isNull);
       expect(house.zipCode, isNull);
       expect(house.country, isNull);
@@ -107,6 +116,10 @@ void main() {
         squareFeet: 140,
         propertyType: 'apartment',
         imageUrl: 'https://example.com/house1.jpg',
+        imageUrls: [
+          'https://example.com/house1.jpg',
+          'https://example.com/house1-living-room.jpg',
+        ],
         address: 'Rue 1.123, Bastos',
         city: 'Yaoundé',
         state: 'Centre',
@@ -130,6 +143,10 @@ void main() {
       expect(json['square_feet'], 140);
       expect(json['property_type'], 'apartment');
       expect(json['image_url'], 'https://example.com/house1.jpg');
+      expect(json['image_urls'], [
+        'https://example.com/house1.jpg',
+        'https://example.com/house1-living-room.jpg',
+      ]);
       expect(json['address'], 'Rue 1.123, Bastos');
       expect(json['city'], 'Yaoundé');
       expect(json['state'], 'Centre');
@@ -160,6 +177,7 @@ void main() {
       expect(json['square_feet'], isNull);
       expect(json['property_type'], isNull);
       expect(json['image_url'], isNull);
+      expect(json['image_urls'], isEmpty);
       expect(json['state'], isNull);
       expect(json['zip_code'], isNull);
       expect(json['country'], isNull);
@@ -182,6 +200,10 @@ void main() {
         squareFeet: 55,
         propertyType: 'apartment',
         imageUrl: 'https://example.com/cozy.jpg',
+        imageUrls: [
+          'https://example.com/cozy.jpg',
+          'https://example.com/cozy-bedroom.jpg',
+        ],
         address: 'Great Soppo, Buea Town',
         city: 'Buea',
         state: 'Southwest',
