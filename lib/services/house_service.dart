@@ -21,4 +21,8 @@ class HouseService {
   Future<List<House>> getHouses() async {
     return _repository.getAllHouses();
   }
+
+  Future<List<House>> getCachedHouses() async {
+    return _repository.loadCachedHouses();
+  }
 }

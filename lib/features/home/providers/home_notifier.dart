@@ -6,6 +6,37 @@ import '../../../services/house_service.dart';
 import '../../../services/location_service.dart';
 import 'home_state.dart';
 
+class HomeFilters {
+  final RangeValues? priceRange;
+  final String? propertyType;
+  final int? bedrooms;
+
+  const HomeFilters({
+    this.priceRange,
+    this.propertyType,
+    this.bedrooms,
+  });
+
+  bool get hasActiveFilters =>
+      priceRange != null || propertyType != null || bedrooms != null;
+
+  HomeFilters copyWith({
+    RangeValues? priceRange,
+    String? propertyType,
+    int? bedrooms,
+    bool clearPriceRange = false,
+    bool clearPropertyType = false,
+    bool clearBedrooms = false,
+  }) {
+    return HomeFilters(
+      priceRange: clearPriceRange ? null : priceRange ?? this.priceRange,
+      propertyType:
+          clearPropertyType ? null : propertyType ?? this.propertyType,
+      bedrooms: clearBedrooms ? null : bedrooms ?? this.bedrooms,
+    );
+  }
+}
+
 class HomeNotifier extends ChangeNotifier {
   final HouseService _houseService;
   final LocationService _locationService;
@@ -14,6 +45,7 @@ class HomeNotifier extends ChangeNotifier {
   List<House> _allHouses = [];
   UserLocation? _userLocation;
   String? _locationMessage;
+  String? _listMessage;
   final Map<int, double> _distancesByHouseId = {};
 
   HomeNotifier(
@@ -29,6 +61,43 @@ class HomeNotifier extends ChangeNotifier {
 
   String? get locationMessage => _locationMessage;
 
+  String? get listMessage => _listMessage;
+
+  double get minHousePrice {
+    if (_allHouses.isEmpty) return 0;
+    return _allHouses
+        .map((house) => house.price)
+        .reduce((value, element) => value < element ? value : element);
+  }
+
+  double get maxHousePrice {
+    if (_allHouses.isEmpty) return 0;
+    return _allHouses
+        .map((house) => house.price)
+        .reduce((value, element) => value > element ? value : element);
+  }
+
+  List<String> get propertyTypes {
+    final types = _allHouses
+        .map((house) => house.propertyType?.trim())
+        .whereType<String>()
+        .where((type) => type.isNotEmpty)
+        .toSet()
+        .toList();
+    types.sort();
+    return types;
+  }
+
+  List<int> get bedroomCounts {
+    final counts = _allHouses
+        .map((house) => house.bedrooms)
+        .whereType<int>()
+        .toSet()
+        .toList();
+    counts.sort();
+    return counts;
+  }
+
   double? distanceForHouse(House house) => _distancesByHouseId[house.id];
 
   House? houseById(int id) {
@@ -38,13 +107,32 @@ class HomeNotifier extends ChangeNotifier {
     return null;
   }
 
-  List<House> filteredHouses(String query) {
-    if (query.isEmpty) return List<House>.unmodifiable(_allHouses);
-    final searchLower = query.toLowerCase();
+  List<House> filteredHouses(
+    String query, [
+    HomeFilters filters = const HomeFilters(),
+  ]) {
+    final searchLower = query.trim().toLowerCase();
     return _allHouses.where((house) {
-      return house.title.toLowerCase().contains(searchLower) ||
-          house.city.toLowerCase().contains(searchLower) ||
-          house.address.toLowerCase().contains(searchLower);
+      final matchesSearch = searchLower.isEmpty ||
+          _matchesText(house.title, searchLower) ||
+          _matchesText(house.neighborhood, searchLower) ||
+          _matchesText(house.address, searchLower) ||
+          _matchesText(house.city, searchLower) ||
+          _matchesText(house.state, searchLower);
+
+      final priceRange = filters.priceRange;
+      final matchesPrice = priceRange == null ||
+          (house.price >= priceRange.start && house.price <= priceRange.end);
+
+      final propertyType = filters.propertyType;
+      final matchesType = propertyType == null ||
+          propertyType.isEmpty ||
+          house.propertyType?.toLowerCase() == propertyType.toLowerCase();
+
+      final bedrooms = filters.bedrooms;
+      final matchesBedrooms = bedrooms == null || house.bedrooms == bedrooms;
+
+      return matchesSearch && matchesPrice && matchesType && matchesBedrooms;
     }).toList(growable: false);
   }
 
@@ -53,22 +141,50 @@ class HomeNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final cachedHouses = await _houseService.getCachedHouses();
+      if (cachedHouses.isNotEmpty) {
+        _applyHouses(cachedHouses);
+        _state = HomeSuccess(
+          _allHouses,
+          notice: 'Showing saved listings while checking for updates.',
+        );
+        notifyListeners();
+      }
+
       final houses = await _houseService.getHouses();
-      _allHouses = houses;
+      _applyHouses(houses);
       await _refreshLocation(notifyWhenDone: false);
-      _sortHousesByDistance();
+      _listMessage = null;
       _state = HomeSuccess(_allHouses);
       notifyListeners();
     } catch (e) {
-      _state = const HomeError(
-        'Failed to load houses. Please check your connection and try again.',
-      );
+      _state = HomeError(_friendlyErrorMessage(e));
       notifyListeners();
     }
   }
 
-  void retry() {
-    loadHouses();
+  Future<void> refreshHouses() async {
+    try {
+      final houses = await _houseService.getHouses();
+      _applyHouses(houses);
+      _recalculateDistances();
+      _sortHousesByDistance();
+      _listMessage = null;
+      _state = HomeSuccess(_allHouses);
+      notifyListeners();
+    } catch (e) {
+      if (_allHouses.isNotEmpty) {
+        _listMessage = _friendlyErrorMessage(e);
+        _state = HomeSuccess(_allHouses, notice: _listMessage);
+      } else {
+        _state = HomeError(_friendlyErrorMessage(e));
+      }
+      notifyListeners();
+    }
+  }
+
+  Future<void> retry() {
+    return loadHouses();
   }
 
   Future<void> refreshLocation() async {
@@ -124,6 +240,34 @@ class HomeNotifier extends ChangeNotifier {
         longitude: longitude,
       );
     }
+  }
+
+  bool _matchesText(String? value, String query) {
+    return value?.toLowerCase().contains(query) ?? false;
+  }
+
+  void _applyHouses(List<House> houses) {
+    _allHouses = houses;
+    _recalculateDistances();
+    _sortHousesByDistance();
+  }
+
+  String _friendlyErrorMessage(Object error) {
+    final message = error.toString();
+    if (message.contains('timed out') || message.contains('Timeout')) {
+      return 'The request timed out. Pull to refresh or try again.';
+    }
+    if (message.contains('offline') || message.contains('connection')) {
+      return 'You appear to be offline. Saved listings will remain available when possible.';
+    }
+    if (message.contains('server') || message.contains('status')) {
+      return 'The listings service is unavailable right now. Please try again soon.';
+    }
+    if (message.contains('read correctly')) {
+      return 'Listings could not be read correctly. Please try again.';
+    }
+
+    return 'Could not load listings. Check your connection and try again.';
   }
 
   void _clearLocation() {

@@ -16,7 +16,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  HomeFilters _filters = const HomeFilters();
 
   @override
   void initState() {
@@ -24,6 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeNotifier>().loadHouses();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _onSearchChanged(String query) {
@@ -34,6 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _navigateToDetails(int id) {
     context.go(AppRoutes.houseDetailsPath(id.toString()));
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _filters = const HomeFilters();
+    });
   }
 
   @override
@@ -47,76 +61,111 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1200),
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'House Finder',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Find your perfect home',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          onChanged: _onSearchChanged,
-                          decoration: const InputDecoration(
-                            hintText: 'Search by neighborhood or city...',
-                            prefixIcon: Icon(Icons.search),
+            child: RefreshIndicator(
+              onRefresh: () => context.read<HomeNotifier>().refreshHouses(),
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'House Finder',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Consumer<HomeNotifier>(
-                          builder: (context, notifier, _) {
-                            return _buildLocationControls(notifier);
-                          },
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            'Find available homes by neighborhood, budget, and type.',
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                          ),
+                          const SizedBox(height: 18),
+                          TextField(
+                            controller: _searchController,
+                            onChanged: _onSearchChanged,
+                            textInputAction: TextInputAction.search,
+                            decoration: InputDecoration(
+                              hintText: 'Search neighborhood...',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _searchQuery.isEmpty
+                                  ? null
+                                  : IconButton(
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _onSearchChanged('');
+                                      },
+                                      icon: const Icon(Icons.close),
+                                      tooltip: 'Clear search',
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Consumer<HomeNotifier>(
+                            builder: (context, notifier, _) {
+                              final state = notifier.state;
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildFilterControls(notifier),
+                                  const SizedBox(height: 12),
+                                  _buildLocationControls(notifier),
+                                  if (notifier.listMessage != null) ...[
+                                    const SizedBox(height: 10),
+                                    _buildNotice(notifier.listMessage!),
+                                  ],
+                                  if (state is HomeSuccess &&
+                                      state.notice != null) ...[
+                                    const SizedBox(height: 10),
+                                    _buildNotice(state.notice!),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Consumer<HomeNotifier>(
-                  builder: (context, notifier, _) {
-                    return switch (notifier.state) {
-                      HomeInitial() => const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: SizedBox.shrink(),
-                        ),
-                      HomeLoading() => const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: CircularProgressIndicator(),
+                  Consumer<HomeNotifier>(
+                    builder: (context, notifier, _) {
+                      return switch (notifier.state) {
+                        HomeInitial() => const SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: SizedBox.shrink(),
                           ),
-                        ),
-                      HomeSuccess() => _buildHouseList(
-                          notifier.filteredHouses(_searchQuery),
-                          isWide,
-                          crossAxisCount,
-                          notifier,
-                        ),
-                      HomeError(:final message) => SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _buildErrorState(message, notifier),
-                        ),
-                    };
-                  },
-                ),
-                const SliverPadding(
-                  padding: EdgeInsets.only(bottom: 16),
-                ),
-              ],
+                        HomeLoading() => _SkeletonHouseList(
+                            isWide: isWide,
+                            crossAxisCount: crossAxisCount,
+                          ),
+                        HomeSuccess() => _buildHouseList(
+                            notifier.filteredHouses(_searchQuery, _filters),
+                            isWide,
+                            crossAxisCount,
+                            notifier,
+                          ),
+                        HomeError(:final message) => SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _buildErrorState(message, notifier),
+                          ),
+                      };
+                    },
+                  ),
+                  const SliverPadding(
+                    padding: EdgeInsets.only(bottom: 16),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -145,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.72,
+            childAspectRatio: 0.74,
           ),
           delegate: SliverChildBuilderDelegate(
             (context, index) => HouseListItem(
@@ -174,6 +223,123 @@ class _HomeScreenState extends State<HomeScreen> {
           childCount: houses.length,
         ),
       ),
+    );
+  }
+
+  Widget _buildFilterControls(HomeNotifier notifier) {
+    if (notifier.allHouses.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final minPrice = notifier.minHousePrice;
+    final maxPrice = notifier.maxHousePrice;
+    final selectedRange = _filters.priceRange ?? RangeValues(minPrice, maxPrice);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            SizedBox(
+              width: 220,
+              child: DropdownButtonFormField<String>(
+                value: _filters.propertyType,
+                decoration: const InputDecoration(
+                  labelText: 'Property type',
+                  prefixIcon: Icon(Icons.apartment),
+                ),
+                items: notifier.propertyTypes
+                    .map(
+                      (type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(_capitalize(type)),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: (value) {
+                  setState(() {
+                    _filters = _filters.copyWith(
+                      propertyType: value,
+                      clearPropertyType: value == null,
+                    );
+                  });
+                },
+              ),
+            ),
+            SizedBox(
+              width: 180,
+              child: DropdownButtonFormField<int>(
+                value: _filters.bedrooms,
+                decoration: const InputDecoration(
+                  labelText: 'Bedrooms',
+                  prefixIcon: Icon(Icons.bed),
+                ),
+                items: notifier.bedroomCounts
+                    .map(
+                      (count) => DropdownMenuItem(
+                        value: count,
+                        child: Text('$count bed${count == 1 ? '' : 's'}'),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: (value) {
+                  setState(() {
+                    _filters = _filters.copyWith(
+                      bedrooms: value,
+                      clearBedrooms: value == null,
+                    );
+                  });
+                },
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _filters.hasActiveFilters ? _resetFilters : null,
+              icon: const Icon(Icons.filter_alt_off),
+              label: const Text('Reset filters'),
+            ),
+          ],
+        ),
+        if (maxPrice > minPrice) ...[
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(
+                Icons.payments_outlined,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RangeSlider(
+                  min: minPrice,
+                  max: maxPrice,
+                  values: selectedRange,
+                  divisions: 20,
+                  labels: RangeLabels(
+                    '${_formatPrice(selectedRange.start)} FCFA',
+                    '${_formatPrice(selectedRange.end)} FCFA',
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _filters = _filters.copyWith(priceRange: value);
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '${_formatPrice(selectedRange.start)} - '
+            '${_formatPrice(selectedRange.end)} FCFA',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -213,9 +379,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildNotice(String message) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        message,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final hasQueryOrFilters =
+        _searchQuery.trim().isNotEmpty || _filters.hasActiveFilters;
 
     return Center(
       child: Padding(
@@ -230,20 +418,32 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No houses found',
+              hasQueryOrFilters ? 'No results found' : 'No houses found',
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              _searchQuery.isEmpty
-                  ? 'Check back later for new listings'
-                  : 'Try adjusting your search criteria',
+              hasQueryOrFilters
+                  ? 'Try adjusting your search or filters'
+                  : 'Check back later for new listings',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
+            if (hasQueryOrFilters) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                  _resetFilters();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Clear search and filters'),
+              ),
+            ],
           ],
         ),
       ),
@@ -287,6 +487,154 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  String _formatPrice(double price) {
+    return price.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => ',',
+    );
+  }
+
+  String _capitalize(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1);
+  }
+}
+
+class _SkeletonHouseList extends StatelessWidget {
+  final bool isWide;
+  final int crossAxisCount;
+
+  const _SkeletonHouseList({
+    required this.isWide,
+    required this.crossAxisCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isWide) {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.74,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => const _SkeletonHouseCard(),
+            childCount: crossAxisCount * 2,
+          ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: _SkeletonHouseCard(),
+          ),
+          childCount: 4,
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonHouseCard extends StatefulWidget {
+  const _SkeletonHouseCard();
+
+  @override
+  State<_SkeletonHouseCard> createState() => _SkeletonHouseCardState();
+}
+
+class _SkeletonHouseCardState extends State<_SkeletonHouseCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 950),
+    )..repeat(reverse: true);
+    _opacity = Tween<double>(begin: 0.45, end: 0.82).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.surfaceContainerHighest;
+
+    return FadeTransition(
+      opacity: _opacity,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SkeletonBlock(height: 180, width: double.infinity, color: color),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SkeletonBlock(height: 18, width: 190, color: color),
+                  const SizedBox(height: 10),
+                  _SkeletonBlock(height: 14, width: 240, color: color),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _SkeletonBlock(height: 24, width: 72, color: color),
+                      const SizedBox(width: 10),
+                      _SkeletonBlock(height: 24, width: 72, color: color),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBlock extends StatelessWidget {
+  final double height;
+  final double width;
+  final Color color;
+
+  const _SkeletonBlock({
+    required this.height,
+    required this.width,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }

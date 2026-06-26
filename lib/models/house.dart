@@ -44,6 +44,9 @@ class House {
   /// URLs of every image for the listing, if available.
   final List<String> imageUrls;
 
+  /// Neighborhood or quarter where the property is located.
+  final String? neighborhood;
+
   /// Street address of the property.
   final String address;
 
@@ -65,6 +68,9 @@ class House {
   /// Geographic longitude, if available.
   final double? longitude;
 
+  /// Availability status, such as `available` or `rented`.
+  final String availabilityStatus;
+
   /// Phone number of the landlord or property manager.
   final String landlordPhone;
 
@@ -85,6 +91,7 @@ class House {
     this.propertyType,
     this.imageUrl,
     this.imageUrls = const [],
+    this.neighborhood,
     required this.address,
     required this.city,
     this.state,
@@ -92,6 +99,7 @@ class House {
     this.country,
     this.latitude,
     this.longitude,
+    this.availabilityStatus = 'available',
     required this.landlordPhone,
     this.createdAt,
     this.updatedAt,
@@ -107,6 +115,7 @@ class House {
     final hasGalleryImages =
         json.containsKey('image_urls') || json.containsKey('images');
     final galleryImages = _parseImageUrls(json);
+    final availabilityStatus = _parseAvailabilityStatus(json);
 
     return House(
       id: json['id'] as int,
@@ -126,6 +135,7 @@ class House {
               imageUrl.isNotEmpty
           ? [imageUrl]
           : galleryImages,
+      neighborhood: json['neighborhood'] as String?,
       address: json['address'] as String,
       city: json['city'] as String,
       state: json['state'] as String?,
@@ -137,6 +147,7 @@ class House {
       longitude: json['longitude'] != null
           ? (json['longitude'] as num).toDouble()
           : null,
+      availabilityStatus: availabilityStatus,
       landlordPhone: json['landlord_phone'] as String,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -162,6 +173,7 @@ class House {
       'property_type': propertyType,
       'image_url': imageUrl,
       'image_urls': imageUrls,
+      'neighborhood': neighborhood,
       'address': address,
       'city': city,
       'state': state,
@@ -169,6 +181,7 @@ class House {
       'country': country,
       'latitude': latitude,
       'longitude': longitude,
+      'availability_status': availabilityStatus,
       'landlord_phone': landlordPhone,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
@@ -188,6 +201,7 @@ class House {
     String? propertyType,
     String? imageUrl,
     List<String>? imageUrls,
+    String? neighborhood,
     String? address,
     String? city,
     String? state,
@@ -195,6 +209,7 @@ class House {
     String? country,
     double? latitude,
     double? longitude,
+    String? availabilityStatus,
     String? landlordPhone,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -210,6 +225,7 @@ class House {
       propertyType: propertyType ?? this.propertyType,
       imageUrl: imageUrl ?? this.imageUrl,
       imageUrls: imageUrls ?? this.imageUrls,
+      neighborhood: neighborhood ?? this.neighborhood,
       address: address ?? this.address,
       city: city ?? this.city,
       state: state ?? this.state,
@@ -217,6 +233,7 @@ class House {
       country: country ?? this.country,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      availabilityStatus: availabilityStatus ?? this.availabilityStatus,
       landlordPhone: landlordPhone ?? this.landlordPhone,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -238,6 +255,7 @@ class House {
           propertyType == other.propertyType &&
           imageUrl == other.imageUrl &&
           listEquals(imageUrls, other.imageUrls) &&
+          neighborhood == other.neighborhood &&
           address == other.address &&
           city == other.city &&
           state == other.state &&
@@ -245,6 +263,7 @@ class House {
           country == other.country &&
           latitude == other.latitude &&
           longitude == other.longitude &&
+          availabilityStatus == other.availabilityStatus &&
           landlordPhone == other.landlordPhone &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
@@ -261,6 +280,7 @@ class House {
         propertyType,
         imageUrl,
         Object.hashAll(imageUrls),
+        neighborhood,
         address,
         city,
         state,
@@ -268,6 +288,7 @@ class House {
         country,
         latitude,
         longitude,
+        availabilityStatus,
         landlordPhone,
         createdAt,
         updatedAt,
@@ -288,5 +309,20 @@ class House {
     }
 
     return const [];
+  }
+
+  static String _parseAvailabilityStatus(Map<String, dynamic> json) {
+    final explicitStatus =
+        json['availability_status'] ?? json['status'] ?? json['listing_status'];
+    if (explicitStatus is String && explicitStatus.trim().isNotEmpty) {
+      return explicitStatus.trim().toLowerCase();
+    }
+
+    final isAvailable = json['is_available'] ?? json['available'];
+    if (isAvailable is bool) {
+      return isAvailable ? 'available' : 'rented';
+    }
+
+    return 'available';
   }
 }

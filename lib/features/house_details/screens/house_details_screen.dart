@@ -140,6 +140,10 @@ class _HouseDetailsScreenState extends State<HouseDetailsScreen> {
                               notifier.distanceForHouse(house)!,
                             ),
                           ),
+                        _InfoChip(
+                          icon: Icons.fact_check,
+                          label: _statusLabel(house),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -277,6 +281,11 @@ class _HouseDetailsScreenState extends State<HouseDetailsScreen> {
     }
 
     return '${distanceKm.toStringAsFixed(1)} km away';
+  }
+
+  String _statusLabel(House house) {
+    final status = house.availabilityStatus.toLowerCase();
+    return status == 'available' ? 'Available' : 'Rented';
   }
 }
 
@@ -516,7 +525,10 @@ class _PropertyInfoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       _InfoItem(Icons.tag, 'Listing ID', '#${house.id}'),
+      _InfoItem(Icons.fact_check, 'Status', _statusLabel(house)),
       _InfoItem(Icons.location_on, 'Address', _formatAddress(house)),
+      if (house.neighborhood != null)
+        _InfoItem(Icons.map, 'Neighborhood', house.neighborhood!),
       if (house.propertyType != null)
         _InfoItem(Icons.apartment, 'Type', _capitalize(house.propertyType!)),
       if (house.bedrooms != null)
@@ -538,6 +550,10 @@ class _PropertyInfoGrid extends StatelessWidget {
           '${house.latitude!.toStringAsFixed(4)}, '
               '${house.longitude!.toStringAsFixed(4)}',
         ),
+      if (house.createdAt != null)
+        _InfoItem(Icons.calendar_today, 'Listed', _formatDate(house.createdAt!)),
+      if (house.updatedAt != null)
+        _InfoItem(Icons.update, 'Last updated', _formatDate(house.updatedAt!)),
     ];
 
     return LayoutBuilder(
@@ -572,6 +588,18 @@ class _PropertyInfoGrid extends StatelessWidget {
     if (value.isEmpty) return value;
     return value[0].toUpperCase() + value.substring(1);
   }
+
+  String _statusLabel(House house) {
+    final status = house.availabilityStatus.toLowerCase();
+    return status == 'available' ? 'Available' : 'Rented';
+  }
+
+  String _formatDate(DateTime date) {
+    final local = date.toLocal();
+    return '${local.year}-${_twoDigits(local.month)}-${_twoDigits(local.day)}';
+  }
+
+  String _twoDigits(int value) => value.toString().padLeft(2, '0');
 }
 
 class _InfoItem extends StatelessWidget {
