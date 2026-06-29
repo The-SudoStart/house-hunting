@@ -10,6 +10,12 @@ abstract final class AppRoutes {
   /// House details screen, requires an `id` path parameter.
   static const String houseDetails = '/house/:id';
 
+  /// Registration screen for landlords and property agents.
+  static const String landlordRegistration = '/landlord/register';
+
+  /// Phone verification screen after landlord registration.
+  static const String phoneVerification = '/landlord/verify-phone';
+
   /// Helper to build a concrete house details path from an [id].
   static String houseDetailsPath(String id) => '/house/$id';
 }

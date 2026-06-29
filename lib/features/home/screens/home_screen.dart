@@ -89,6 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                           .onSurfaceVariant,
                                     ),
                           ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: () {
+                              context.go(AppRoutes.landlordRegistration);
+                            },
+                            icon: const Icon(Icons.add_home_work_outlined),
+                            label: const Text('List a property'),
+                          ),
                           const SizedBox(height: 18),
                           TextField(
                             controller: _searchController,
