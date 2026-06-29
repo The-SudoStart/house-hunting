@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/models/landlord_registration_data.dart';
+import '../../features/auth/screens/landlord_registration_screen.dart';
+import '../../features/auth/screens/phone_verification_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/house_details/screens/house_details_screen.dart';
 import 'routes.dart';
@@ -28,6 +31,22 @@ final GoRouter appRouter = GoRouter(
         // Expects `id` as a path parameter, e.g. /house/123
         final String houseId = state.pathParameters['id'] ?? '';
         return HouseDetailsScreen(houseId: houseId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.landlordRegistration,
+      builder: (BuildContext context, GoRouterState state) {
+        return const LandlordRegistrationScreen();
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.phoneVerification,
+      builder: (BuildContext context, GoRouterState state) {
+        final extra = state.extra;
+        return PhoneVerificationScreen(
+          registrationData:
+              extra is LandlordRegistrationData ? extra : null,
+        );
       },
     ),
   ],
