@@ -153,11 +153,18 @@ async fn houses_table_can_insert_and_select() -> Result<(), Box<dyn std::error::
     let pool = create_pool(&config.database_url).await?;
     run_migrations(&pool).await?;
 
+    let title = format!(
+        "Test House {}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_millis()
+    );
+
     sqlx::query(
         "INSERT INTO houses (title, description, price, bedrooms, bathrooms, square_feet, property_type, address, city, state, zip_code, country, latitude, longitude, landlord_phone)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)"
     )
-    .bind("Test House")
+    .bind(&title)
     .bind("A lovely test house")
     .bind(150000.00)
     .bind(3)
@@ -175,11 +182,95 @@ async fn houses_table_can_insert_and_select() -> Result<(), Box<dyn std::error::
     .execute(&pool)
     .await?;
 
-    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM houses WHERE title = 'Test House'")
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM houses WHERE title = $1")
+        .bind(&title)
         .fetch_one(&pool)
         .await?;
 
     assert_eq!(row.0, 1, "Expected one house to be inserted");
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn landlord_profiles_table_has_required_columns(
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let config = AppConfig::from_env().unwrap_or_default();
+    let pool = create_pool(&config.database_url).await?;
+    run_migrations(&pool).await?;
+
+    let columns: Vec<(String,)> = sqlx::query_as(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'landlord_profiles' ORDER BY ordinal_position"
+    )
+    .fetch_all(&pool)
+    .await?;
+
+    let column_names: Vec<String> = columns.into_iter().map(|c| c.0).collect();
+
+    assert!(
+        column_names.contains(&"id".to_string()),
+        "missing id column"
+    );
+    assert!(
+        column_names.contains(&"full_name".to_string()),
+        "missing full_name column"
+    );
+    assert!(
+        column_names.contains(&"verified_phone_number".to_string()),
+        "missing verified_phone_number column"
+    );
+    assert!(
+        column_names.contains(&"account_type".to_string()),
+        "missing account_type column"
+    );
+    assert!(
+        column_names.contains(&"profile_photo_url".to_string()),
+        "missing profile_photo_url column"
+    );
+    assert!(
+        column_names.contains(&"created_at".to_string()),
+        "missing created_at column"
+    );
+    assert!(
+        column_names.contains(&"updated_at".to_string()),
+        "missing updated_at column"
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn landlord_profiles_table_can_insert_and_select(
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let config = AppConfig::from_env().unwrap_or_default();
+    let pool = create_pool(&config.database_url).await?;
+    run_migrations(&pool).await?;
+
+    let phone_number = format!(
+        "+2379{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_millis()
+    );
+
+    sqlx::query(
+        "INSERT INTO landlord_profiles (full_name, verified_phone_number, account_type, profile_photo_url)
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind("Test Landlord")
+    .bind(&phone_number)
+    .bind("landlord")
+    .bind(Option::<String>::None)
+    .execute(&pool)
+    .await?;
+
+    let row: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM landlord_profiles WHERE verified_phone_number = $1")
+            .bind(&phone_number)
+            .fetch_one(&pool)
+            .await?;
+
+    assert_eq!(row.0, 1, "Expected one landlord profile to be inserted");
 
     Ok(())
 }

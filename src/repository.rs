@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sqlx::{Error, PgPool};
 
-use crate::models::House;
+use crate::models::{CreateLandlordProfile, House, LandlordProfile};
 
 /// Retrieves all house listings from the database, ordered by creation date (newest first).
 pub async fn get_all_houses(pool: &PgPool) -> Result<Vec<House>, Error> {
@@ -59,6 +59,71 @@ impl From<House> for HouseResponse {
             landlord_phone: house.landlord_phone,
             created_at: house.created_at,
             updated_at: house.updated_at,
+        }
+    }
+}
+
+/// Creates or updates a landlord profile for a verified phone number.
+pub async fn create_landlord_profile(
+    pool: &PgPool,
+    profile: &CreateLandlordProfile,
+) -> Result<LandlordProfile, Error> {
+    sqlx::query_as::<_, LandlordProfile>(
+        "INSERT INTO landlord_profiles (full_name, verified_phone_number, account_type, profile_photo_url)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (verified_phone_number)
+         DO UPDATE SET
+            full_name = EXCLUDED.full_name,
+            account_type = EXCLUDED.account_type,
+            profile_photo_url = EXCLUDED.profile_photo_url,
+            updated_at = NOW()
+         RETURNING id, full_name, verified_phone_number, account_type, profile_photo_url, created_at, updated_at",
+    )
+    .bind(&profile.full_name)
+    .bind(&profile.verified_phone_number)
+    .bind(&profile.account_type)
+    .bind(&profile.profile_photo_url)
+    .fetch_one(pool)
+    .await
+}
+
+/// Retrieves a landlord profile by verified phone number.
+pub async fn get_landlord_profile_by_phone(
+    pool: &PgPool,
+    verified_phone_number: &str,
+) -> Result<Option<LandlordProfile>, Error> {
+    sqlx::query_as::<_, LandlordProfile>(
+        "SELECT id, full_name, verified_phone_number, account_type, profile_photo_url, created_at, updated_at
+         FROM landlord_profiles
+         WHERE verified_phone_number = $1",
+    )
+    .bind(verified_phone_number)
+    .fetch_optional(pool)
+    .await
+}
+
+/// Response DTO for a landlord profile.
+#[derive(Debug, Clone, Serialize)]
+pub struct LandlordProfileResponse {
+    pub id: i32,
+    pub full_name: String,
+    pub verified_phone_number: String,
+    pub account_type: String,
+    pub profile_photo_url: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl From<LandlordProfile> for LandlordProfileResponse {
+    fn from(profile: LandlordProfile) -> Self {
+        Self {
+            id: profile.id,
+            full_name: profile.full_name,
+            verified_phone_number: profile.verified_phone_number,
+            account_type: profile.account_type,
+            profile_photo_url: profile.profile_photo_url,
+            created_at: profile.created_at,
+            updated_at: profile.updated_at,
         }
     }
 }
