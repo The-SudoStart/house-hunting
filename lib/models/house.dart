@@ -269,7 +269,7 @@ class House {
           updatedAt == other.updatedAt;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
         id,
         title,
         description,
@@ -292,7 +292,7 @@ class House {
         landlordPhone,
         createdAt,
         updatedAt,
-      );
+      ]);
 
   @override
   String toString() {

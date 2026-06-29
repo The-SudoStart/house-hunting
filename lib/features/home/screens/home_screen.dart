@@ -246,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: 220,
               child: DropdownButtonFormField<String>(
-                value: _filters.propertyType,
+                initialValue: _filters.propertyType,
                 decoration: const InputDecoration(
                   labelText: 'Property type',
                   prefixIcon: Icon(Icons.apartment),
@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: 180,
               child: DropdownButtonFormField<int>(
-                value: _filters.bedrooms,
+                initialValue: _filters.bedrooms,
                 decoration: const InputDecoration(
                   labelText: 'Bedrooms',
                   prefixIcon: Icon(Icons.bed),
