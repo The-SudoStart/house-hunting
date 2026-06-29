@@ -2,16 +2,48 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sqlx::{Error, PgPool};
 
-use crate::models::{CreateLandlordProfile, House, LandlordProfile};
+use crate::models::{CreateHouse, CreateLandlordProfile, House, LandlordProfile};
 
 /// Retrieves all house listings from the database, ordered by creation date (newest first).
 pub async fn get_all_houses(pool: &PgPool) -> Result<Vec<House>, Error> {
     sqlx::query_as::<_, House>(
-        "SELECT id, title, description, price, bedrooms, bathrooms, square_feet, property_type, address, city, state, zip_code, country, latitude, longitude, landlord_phone, created_at, updated_at
+        "SELECT id, title, description, price, bedrooms, bathrooms, square_feet, property_type, address, city, state, zip_code, country, latitude, longitude, availability_status, landlord_phone, created_at, updated_at
          FROM houses
          ORDER BY created_at DESC"
     )
     .fetch_all(pool)
+    .await
+}
+
+/// Creates a new house listing and stores it for moderation.
+pub async fn create_house(pool: &PgPool, house: &CreateHouse) -> Result<House, Error> {
+    sqlx::query_as::<_, House>(
+        "INSERT INTO houses (
+            title, description, price, bedrooms, bathrooms, square_feet,
+            property_type, address, city, state, zip_code, country,
+            latitude, longitude, availability_status, landlord_phone
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'pending_review', $15)
+         RETURNING id, title, description, price, bedrooms, bathrooms, square_feet,
+            property_type, address, city, state, zip_code, country, latitude,
+            longitude, availability_status, landlord_phone, created_at, updated_at",
+    )
+    .bind(&house.title)
+    .bind(&house.description)
+    .bind(house.price)
+    .bind(house.bedrooms)
+    .bind(house.bathrooms)
+    .bind(house.square_feet)
+    .bind(&house.property_type)
+    .bind(&house.address)
+    .bind(&house.city)
+    .bind(&house.state)
+    .bind(&house.zip_code)
+    .bind(&house.country)
+    .bind(house.latitude)
+    .bind(house.longitude)
+    .bind(&house.landlord_phone)
+    .fetch_one(pool)
     .await
 }
 
@@ -33,6 +65,7 @@ pub struct HouseResponse {
     pub country: Option<String>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
+    pub availability_status: String,
     pub landlord_phone: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -56,6 +89,7 @@ impl From<House> for HouseResponse {
             country: house.country,
             latitude: house.latitude,
             longitude: house.longitude,
+            availability_status: house.availability_status,
             landlord_phone: house.landlord_phone,
             created_at: house.created_at,
             updated_at: house.updated_at,

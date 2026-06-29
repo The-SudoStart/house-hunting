@@ -1,5 +1,6 @@
-import '../../models/house.dart';
 import '../data/repositories/house_repository.dart';
+import '../features/landlord/models/create_listing_data.dart';
+import '../models/house.dart';
 
 /// Provides house listing data for the application.
 ///
@@ -24,5 +25,9 @@ class HouseService {
 
   Future<List<House>> getCachedHouses() async {
     return _repository.loadCachedHouses();
+  }
+
+  Future<House> createHouse(CreateListingData listingData) {
+    return _repository.createHouse(listingData);
   }
 }

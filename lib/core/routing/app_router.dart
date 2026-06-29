@@ -6,6 +6,8 @@ import '../../features/auth/screens/landlord_registration_screen.dart';
 import '../../features/auth/screens/phone_verification_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/house_details/screens/house_details_screen.dart';
+import '../../features/landlord/screens/create_listing_screen.dart';
+import '../../features/landlord/screens/landlord_dashboard_screen.dart';
 import 'routes.dart';
 
 /// Application router configuration using go_router.
@@ -47,6 +49,18 @@ final GoRouter appRouter = GoRouter(
           registrationData:
               extra is LandlordRegistrationData ? extra : null,
         );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.landlordDashboard,
+      builder: (BuildContext context, GoRouterState state) {
+        return const LandlordDashboardScreen();
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.createListing,
+      builder: (BuildContext context, GoRouterState state) {
+        return const CreateListingScreen();
       },
     ),
   ],
