@@ -45,8 +45,10 @@ class HouseCacheService {
     if (decoded is! List) return null;
 
     final houses = decoded
-        .whereType<Map<String, dynamic>>()
-        .map(House.fromJson)
+        .whereType<Map>()
+        .map(
+          (houseJson) => House.fromJson(Map<String, dynamic>.from(houseJson)),
+        )
         .toList(growable: false);
 
     return CachedHouseListings(

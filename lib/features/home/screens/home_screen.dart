@@ -246,6 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: 220,
               child: DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _filters.propertyType,
                 decoration: const InputDecoration(
                   labelText: 'Property type',
@@ -255,7 +256,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     .map(
                       (type) => DropdownMenuItem(
                         value: type,
-                        child: Text(_capitalize(type)),
+                        child: Text(
+                          _capitalize(type),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     )
                     .toList(growable: false),
@@ -272,6 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: 180,
               child: DropdownButtonFormField<int>(
+                isExpanded: true,
                 initialValue: _filters.bedrooms,
                 decoration: const InputDecoration(
                   labelText: 'Bedrooms',
@@ -281,7 +286,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     .map(
                       (count) => DropdownMenuItem(
                         value: count,
-                        child: Text('$count bed${count == 1 ? '' : 's'}'),
+                        child: Text(
+                          '$count bed${count == 1 ? '' : 's'}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     )
                     .toList(growable: false),
