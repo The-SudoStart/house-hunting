@@ -6,10 +6,20 @@ import 'package:house_finder/core/network/api_client.dart';
 import 'package:house_finder/core/routing/app_router.dart';
 import 'package:house_finder/core/routing/routes.dart';
 import 'package:house_finder/main.dart';
+import 'package:house_finder/services/location_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+class _FakeLocationService extends LocationService {
+  @override
+  Future<UserLocation> requestCurrentLocation() async {
+    return const UserLocation(latitude: 3.8480, longitude: 11.5021);
+  }
+}
+
 void main() {
+  final locationService = _FakeLocationService();
+
   setUp(() {
     appRouter.go(AppRoutes.home);
   });
@@ -19,8 +29,9 @@ void main() {
     ApiClient.client = http.Client();
   });
 
-  testWidgets('App launches and shows header and search field',
-      (WidgetTester tester) async {
+  testWidgets('App launches and shows header and search field', (
+    WidgetTester tester,
+  ) async {
     ApiClient.client = MockClient((request) async {
       if (request.url.path == '/houses') {
         return http.Response(
@@ -73,7 +84,7 @@ void main() {
       return http.Response('Not Found', 404);
     });
 
-    await tester.pumpWidget(const HouseFinderApp());
+    await tester.pumpWidget(HouseFinderApp(locationService: locationService));
     await tester.pump();
 
     expect(find.text('House Finder'), findsOneWidget);
@@ -116,7 +127,7 @@ void main() {
       return http.Response('Not Found', 404);
     });
 
-    await tester.pumpWidget(const HouseFinderApp());
+    await tester.pumpWidget(HouseFinderApp(locationService: locationService));
     await tester.pumpAndSettle();
 
     expect(find.byType(Card), findsWidgets);
@@ -130,17 +141,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No houses found'), findsOneWidget);
-    expect(
-        find.text('Try adjusting your search criteria'), findsOneWidget);
+    expect(find.text('Try adjusting your search criteria'), findsOneWidget);
   });
 
-  testWidgets('Displays error state when API fails',
-      (WidgetTester tester) async {
+  testWidgets('Displays error state when API fails', (
+    WidgetTester tester,
+  ) async {
     ApiClient.client = MockClient((request) async {
       return http.Response('Internal Server Error', 500);
     });
 
-    await tester.pumpWidget(const HouseFinderApp());
+    await tester.pumpWidget(HouseFinderApp(locationService: locationService));
     await tester.pump();
     await tester.pumpAndSettle();
 
@@ -148,7 +159,8 @@ void main() {
     expect(find.text('Something went wrong'), findsOneWidget);
     expect(
       find.text(
-          'Failed to load houses. Please check your connection and try again.'),
+        'Failed to load houses. Please check your connection and try again.',
+      ),
       findsOneWidget,
     );
     expect(find.widgetWithText(ElevatedButton, 'Retry'), findsOneWidget);
