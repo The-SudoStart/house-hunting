@@ -6,12 +6,14 @@ import 'package:house_finder/data/repositories/house_repository.dart';
 import 'package:house_finder/models/house.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('HouseRepository.getAllHouses', () {
     late HouseRepository repository;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       repository = HouseRepository();
     });
 
@@ -108,7 +110,7 @@ void main() {
           isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('Failed to load houses (status 500)'),
+            contains('The server could not load listings right now.'),
           ),
         ),
       );
@@ -125,7 +127,7 @@ void main() {
           isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('Failed to load houses (status 404)'),
+            contains('The server could not load listings right now.'),
           ),
         ),
       );

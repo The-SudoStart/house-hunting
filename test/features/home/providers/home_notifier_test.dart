@@ -20,6 +20,11 @@ class _FakeHouseRepository extends HouseRepository {
     }
     return _houses;
   }
+
+  @override
+  Future<List<House>> loadCachedHouses() async {
+    return const [];
+  }
 }
 
 class _FakeLocationService extends LocationService {
@@ -106,7 +111,7 @@ void main() {
       expect(states[1], isA<HomeError>());
 
       final error = states[1] as HomeError;
-      expect(error.message, contains('Failed to load houses'));
+      expect(error.message, contains('Could not load listings'));
     });
 
     test('filteredHouses returns all houses when query is empty', () async {
