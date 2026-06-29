@@ -1,37 +1,9 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::State, http::StatusCode, Json};
 use serde::Serialize;
 use sqlx::PgPool;
 
 use crate::repository::{get_all_houses, HouseResponse};
-
-/// API-level error type that produces consistent JSON responses.
-#[derive(Debug, Clone, Serialize)]
-pub struct ApiError {
-    pub status: &'static str,
-    pub message: String,
-}
-
-impl ApiError {
-    pub fn new(status: &'static str, message: impl Into<String>) -> Self {
-        Self {
-            status,
-            message: message.into(),
-        }
-    }
-}
-
-impl IntoResponse for ApiError {
-    fn into_response(self) -> axum::response::Response {
-        let status = match self.status {
-            "not_found" => StatusCode::NOT_FOUND,
-            "bad_request" => StatusCode::BAD_REQUEST,
-            "internal_server_error" => StatusCode::INTERNAL_SERVER_ERROR,
-            _ => StatusCode::INTERNAL_SERVER_ERROR,
-        };
-
-        (status, Json(self)).into_response()
-    }
-}
+use crate::routes::ApiError;
 
 /// Response wrapper for a collection of house listings.
 #[derive(Debug, Clone, Serialize)]

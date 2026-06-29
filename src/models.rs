@@ -66,3 +66,24 @@ pub struct UpdateHouse {
     pub longitude: Option<f64>,
     pub landlord_phone: Option<String>,
 }
+
+/// Represents a verified landlord or property agent profile.
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct LandlordProfile {
+    pub id: i32,
+    pub full_name: String,
+    pub verified_phone_number: String,
+    pub account_type: String,
+    pub profile_photo_url: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Payload for creating a landlord profile after phone verification.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CreateLandlordProfile {
+    pub full_name: String,
+    pub verified_phone_number: String,
+    pub account_type: String,
+    pub profile_photo_url: Option<String>,
+}
