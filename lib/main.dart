@@ -5,20 +5,27 @@ import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/providers/home_notifier.dart';
 import 'services/house_service.dart';
+import 'services/location_service.dart';
 
 void main() {
   runApp(const HouseFinderApp());
 }
 
 class HouseFinderApp extends StatelessWidget {
-  const HouseFinderApp({super.key});
+  final HouseService? houseService;
+  final LocationService? locationService;
+
+  const HouseFinderApp({super.key, this.houseService, this.locationService});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => HomeNotifier(HouseService()),
+          create: (_) => HomeNotifier(
+            houseService ?? HouseService(),
+            locationService: locationService,
+          ),
         ),
       ],
       child: MaterialApp.router(

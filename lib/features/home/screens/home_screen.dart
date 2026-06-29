@@ -77,6 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             prefixIcon: Icon(Icons.search),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        Consumer<HomeNotifier>(
+                          builder: (context, notifier, _) {
+                            return _buildLocationControls(notifier);
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -98,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           notifier.filteredHouses(_searchQuery),
                           isWide,
                           crossAxisCount,
+                          notifier,
                         ),
                       HomeError(:final message) => SliverFillRemaining(
                           hasScrollBody: false,
@@ -118,7 +125,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHouseList(
-      List<House> houses, bool isWide, int crossAxisCount) {
+    List<House> houses,
+    bool isWide,
+    int crossAxisCount,
+    HomeNotifier notifier,
+  ) {
     if (houses.isEmpty) {
       return SliverFillRemaining(
         hasScrollBody: false,
@@ -139,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
           delegate: SliverChildBuilderDelegate(
             (context, index) => HouseListItem(
               house: houses[index],
+              distanceKm: notifier.distanceForHouse(houses[index]),
               onTap: () => _navigateToDetails(houses[index].id),
             ),
             childCount: houses.length,
@@ -155,12 +167,49 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: HouseListItem(
               house: houses[index],
+              distanceKm: notifier.distanceForHouse(houses[index]),
               onTap: () => _navigateToDetails(houses[index].id),
             ),
           ),
           childCount: houses.length,
         ),
       ),
+    );
+  }
+
+  Widget _buildLocationControls(HomeNotifier notifier) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final message = notifier.locationMessage;
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        OutlinedButton.icon(
+          onPressed: notifier.refreshLocation,
+          icon: const Icon(Icons.my_location),
+          label: Text(
+            notifier.userLocation == null ? 'Use location' : 'Refresh location',
+          ),
+        ),
+        if (notifier.userLocation != null)
+          Text(
+            'Sorted by distance',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          )
+        else if (message != null)
+          Text(
+            message,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.error,
+            ),
+          ),
+      ],
     );
   }
 

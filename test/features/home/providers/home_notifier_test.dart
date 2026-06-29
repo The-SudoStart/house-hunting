@@ -5,6 +5,7 @@ import 'package:house_finder/features/home/providers/home_state.dart';
 import 'package:house_finder/data/repositories/house_repository.dart';
 import 'package:house_finder/models/house.dart';
 import 'package:house_finder/services/house_service.dart';
+import 'package:house_finder/services/location_service.dart';
 
 class _FakeHouseRepository extends HouseRepository {
   final List<House> _houses;
@@ -18,6 +19,13 @@ class _FakeHouseRepository extends HouseRepository {
       throw Exception('API error');
     }
     return _houses;
+  }
+}
+
+class _FakeLocationService extends LocationService {
+  @override
+  Future<UserLocation> requestCurrentLocation() async {
+    return const UserLocation(latitude: 3.8500, longitude: 11.5000);
   }
 }
 
@@ -159,6 +167,41 @@ void main() {
       expect(states.length, 2);
       expect(states[0], isA<HomeLoading>());
       expect(states[1], isA<HomeSuccess>());
+    });
+
+    test('loadHouses sorts houses by distance when location is available',
+        () async {
+      final houses = [
+        House(
+          id: 1,
+          title: 'Far House',
+          price: 100000,
+          address: 'Far Street',
+          city: 'Yaoundé',
+          latitude: 3.9500,
+          longitude: 11.6000,
+          landlordPhone: '+1234567890',
+        ),
+        House(
+          id: 2,
+          title: 'Near House',
+          price: 100000,
+          address: 'Near Street',
+          city: 'Yaoundé',
+          latitude: 3.8510,
+          longitude: 11.5010,
+          landlordPhone: '+1234567890',
+        ),
+      ];
+      final notifier = HomeNotifier(
+        HouseService(repository: _FakeHouseRepository(houses, false)),
+        locationService: _FakeLocationService(),
+      );
+
+      await notifier.loadHouses();
+
+      expect(notifier.allHouses.first.title, 'Near House');
+      expect(notifier.distanceForHouse(notifier.allHouses.first), isNotNull);
     });
   });
 }
