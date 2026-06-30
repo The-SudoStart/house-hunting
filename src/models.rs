@@ -22,6 +22,7 @@ pub struct House {
     pub country: Option<String>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
+    pub availability_status: String,
     pub landlord_phone: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

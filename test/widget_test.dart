@@ -80,7 +80,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    appRouter.go(AppRoutes.home);
+    appRouter.go(AppRoutes.entry);
   });
 
   tearDown(() {
@@ -88,7 +88,7 @@ void main() {
     ApiClient.client = http.Client();
   });
 
-  testWidgets('App launches and shows header and search field', (
+  testWidgets('App launches with entry actions', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -97,6 +97,24 @@ void main() {
         locationService: locationService,
       ),
     );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Find House'), findsOneWidget);
+    expect(find.text('List a House'), findsOneWidget);
+  });
+
+  testWidgets('Find House opens listings home', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      HouseFinderApp(
+        houseService: _FakeHouseService(sampleHouses),
+        locationService: locationService,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Find House'));
     await tester.pump();
 
     expect(find.text('House Finder'), findsOneWidget);
@@ -151,6 +169,9 @@ void main() {
     await tester.pumpWidget(HouseFinderApp(locationService: locationService));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.widgetWithText(FilledButton, 'Find House'));
+    await tester.pumpAndSettle();
+
     expect(find.byType(Card), findsWidgets);
 
     await tester.enterText(find.byType(TextField), 'Bastos');
@@ -173,6 +194,9 @@ void main() {
     });
 
     await tester.pumpWidget(HouseFinderApp(locationService: locationService));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Find House'));
     await tester.pump();
     await tester.pumpAndSettle();
 

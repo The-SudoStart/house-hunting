@@ -4,9 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/routes.dart';
 import '../models/landlord_registration_data.dart';
+import '../services/landlord_profile_service.dart';
 
 class LandlordRegistrationScreen extends StatefulWidget {
-  const LandlordRegistrationScreen({super.key});
+  const LandlordRegistrationScreen({
+    super.key,
+    this.profileService,
+  });
+
+  final LandlordProfileService? profileService;
 
   @override
   State<LandlordRegistrationScreen> createState() =>
@@ -18,7 +24,15 @@ class _LandlordRegistrationScreenState
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  late final LandlordProfileService _profileService;
   LandlordAccountType _accountType = LandlordAccountType.landlord;
+  bool _isCreatingProfile = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileService = widget.profileService ?? LandlordProfileService();
+  }
 
   @override
   void dispose() {
@@ -27,18 +41,43 @@ class _LandlordRegistrationScreenState
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final form = _formKey.currentState;
-    if (form == null || !form.validate()) return;
+    if (form == null || !form.validate() || _isCreatingProfile) return;
 
-    context.go(
-      AppRoutes.phoneVerification,
-      extra: LandlordRegistrationData(
-        fullName: _fullNameController.text.trim(),
-        phoneNumber: _normalizePhoneNumber(_phoneController.text),
-        accountType: _accountType,
-      ),
-    );
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    setState(() {
+      _isCreatingProfile = true;
+    });
+
+    try {
+      await _profileService.createVerifiedProfile(
+        LandlordRegistrationData(
+          fullName: _fullNameController.text.trim(),
+          phoneNumber: _normalizePhoneNumber(_phoneController.text),
+          accountType: _accountType,
+        ),
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Landlord profile created.')),
+      );
+      router.go(AppRoutes.landlordDashboard);
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('We could not create your profile. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingProfile = false;
+        });
+      }
+    }
   }
 
   @override
@@ -72,7 +111,7 @@ class _LandlordRegistrationScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Enter your details to continue to phone verification.',
+                    'Enter your details to create your listing account.',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -141,9 +180,21 @@ class _LandlordRegistrationScreenState
                         ),
                         const SizedBox(height: 24),
                         FilledButton.icon(
-                          onPressed: _submit,
-                          icon: const Icon(Icons.sms_outlined),
-                          label: const Text('Continue'),
+                          onPressed: _isCreatingProfile ? null : _submit,
+                          icon: _isCreatingProfile
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.person_add_alt_1_outlined),
+                          label: Text(
+                            _isCreatingProfile
+                                ? 'Creating profile'
+                                : 'Create account',
+                          ),
                         ),
                       ],
                     ),

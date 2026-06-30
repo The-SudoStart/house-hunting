@@ -40,7 +40,7 @@ impl IntoResponse for ApiError {
 pub fn create_router(pool: PgPool) -> Router {
     Router::new()
         .route("/health", get(health::health_check))
-        .route("/houses", get(house::list_houses))
+        .route("/houses", get(house::list_houses).post(house::create_house))
         .route(
             "/landlord-profiles",
             get(landlord_profile::get_profile).post(landlord_profile::create_profile),

@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/models/landlord_registration_data.dart';
 import '../../features/auth/screens/landlord_registration_screen.dart';
 import '../../features/auth/screens/phone_verification_screen.dart';
+import '../../features/entry/screens/entry_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/house_details/screens/house_details_screen.dart';
+import '../../features/landlord/screens/create_listing_screen.dart';
+import '../../features/landlord/screens/landlord_dashboard_screen.dart';
 import 'routes.dart';
 
 /// Application router configuration using go_router.
@@ -16,9 +19,15 @@ import 'routes.dart';
 /// 2. Add a [GoRoute] entry below.
 /// 3. Create the target screen widget.
 final GoRouter appRouter = GoRouter(
-  initialLocation: AppRoutes.home,
+  initialLocation: AppRoutes.entry,
   debugLogDiagnostics: true,
   routes: <RouteBase>[
+    GoRoute(
+      path: AppRoutes.entry,
+      builder: (BuildContext context, GoRouterState state) {
+        return const EntryScreen();
+      },
+    ),
     GoRoute(
       path: AppRoutes.home,
       builder: (BuildContext context, GoRouterState state) {
@@ -47,6 +56,18 @@ final GoRouter appRouter = GoRouter(
           registrationData:
               extra is LandlordRegistrationData ? extra : null,
         );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.landlordDashboard,
+      builder: (BuildContext context, GoRouterState state) {
+        return const LandlordDashboardScreen();
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.createListing,
+      builder: (BuildContext context, GoRouterState state) {
+        return const CreateListingScreen();
       },
     ),
   ],

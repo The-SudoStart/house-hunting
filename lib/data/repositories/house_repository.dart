@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 import '../../core/network/api_client.dart';
+import '../../features/landlord/models/create_listing_data.dart';
 import '../../models/house.dart';
 import '../../services/house_cache_service.dart';
 
@@ -97,6 +98,52 @@ class HouseRepository {
           HouseRepositoryErrorType.unknown,
           'Something went wrong while loading listings.',
         ),
+      );
+    }
+  }
+
+  Future<House> createHouse(CreateListingData listingData) async {
+    try {
+      final response = await ApiClient.client
+          .post(
+            Uri.parse('${ApiClient.baseUrl}/houses'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(listingData.toJson()),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        return House.fromJson(body['data'] as Map<String, dynamic>);
+      }
+
+      log('Create listing API error: ${response.statusCode} ${response.body}');
+      throw const HouseRepositoryException(
+        HouseRepositoryErrorType.server,
+        'The server could not create this listing right now.',
+      );
+    } on TimeoutException {
+      throw const HouseRepositoryException(
+        HouseRepositoryErrorType.timeout,
+        'The request timed out. Please try again.',
+      );
+    } on FormatException {
+      throw const HouseRepositoryException(
+        HouseRepositoryErrorType.parsing,
+        'The created listing could not be read correctly.',
+      );
+    } on http.ClientException {
+      throw const HouseRepositoryException(
+        HouseRepositoryErrorType.network,
+        'You appear to be offline. Check your connection and try again.',
+      );
+    } on HouseRepositoryException {
+      rethrow;
+    } catch (e) {
+      log('Unexpected create listing error: $e');
+      throw const HouseRepositoryException(
+        HouseRepositoryErrorType.unknown,
+        'Something went wrong while creating this listing.',
       );
     }
   }
