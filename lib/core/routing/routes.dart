@@ -4,8 +4,11 @@
 abstract final class AppRoutes {
   AppRoutes._();
 
+  /// First screen where users choose what they want to do.
+  static const String entry = '/';
+
   /// Home / browse screen.
-  static const String home = '/';
+  static const String home = '/home';
 
   /// House details screen, requires an `id` path parameter.
   static const String houseDetails = '/house/:id';
